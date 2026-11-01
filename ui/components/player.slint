@@ -1,4 +1,5 @@
 import { Cassette } from "cassette.slint";
+import { Button } from "button.slint";
 
 export component Player inherits Rectangle {
     in property <bool> loaded;
@@ -7,6 +8,10 @@ export component Player inherits Rectangle {
     in property <string> side: "A";
     in property <color> marker;
     in property <bool> playing;
+    in property <bool> busy;
+    in property <bool> show-eject: true;
+
+    callback eject();
 
     width: 520px;
     height: 442px;
@@ -25,5 +30,15 @@ export component Player inherits Rectangle {
         side: root.side;
         marker: root.marker;
         playing: root.playing;
+    }
+
+    if root.show-eject: Button {
+        x: 344px;
+        y: 30px;
+        width: 132px;
+        height: 44px;
+        text: root.busy ? "busy…" : "⏏  eject";
+        enabled: root.loaded && !root.busy;
+        clicked => { root.eject(); }
     }
 }

@@ -1,0 +1,26 @@
+import { Theme } from "../theme.slint";
+
+export component Button inherits TouchArea {
+    in property <string> text;
+    in property <length> font-size: 22px;
+
+    height: 42px;
+    mouse-cursor: root.enabled ? MouseCursor.pointer : MouseCursor.default;
+    opacity: root.enabled ? 1 : 0.45;
+
+    Rectangle {
+        border-radius: self.height / 2;
+        border-width: 1.5px;
+        border-color: root.has-hover && root.enabled ? Theme.text : Theme.text-muted;
+        background: root.pressed ? Theme.text.with-alpha(0.08) : transparent;
+    }
+
+    Text {
+        width: parent.width;
+        horizontal-alignment: center;
+        text: root.text;
+        font-family: Theme.font-hand;
+        font-size: root.font-size;
+        color: Theme.text;
+    }
+}
