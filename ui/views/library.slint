@@ -1,21 +1,98 @@
+import { Theme } from "../theme.slint";
 import { Cassette } from "../components/cassette.slint";
-
+import { Player } from "../components/player.slint";
 
 export struct TapeInfo {
     name: string,
     source: string,
 }
+
 export component LibraryView inherits Rectangle {
     in property <[TapeInfo]> tapes;
     in property <int> active: -1;
-    
-    HorizontalLayout {
-        spacing: 16px;
 
-        for tape[i] in root.tapes: Cassette {
-            name: tape.name;
-            subtitle: tape.source;
-            playing: i == root.active;
+    property <length> cell-width: 200px;
+    property <length> cell-height: 128px;
+    property <length> gap: 28px;
+    property <[color]> markers: [#e8b94a, #6fb7e8, #e86f8a, #8ad16f, #b48ae8];
+
+    HorizontalLayout {
+        padding: 32px;
+        padding-left: 48px;
+        spacing: 48px;
+
+        VerticalLayout {
+            alignment: start;
+            spacing: 8px;
+
+            Text {
+                text: "now playing";
+                font-family: Theme.font-hand;
+                font-size: 22px;
+                color: Theme.text-muted;
+            }
+
+            Player {
+                width: 390px;
+                height: 332px;
+            }
+
+            Text {
+                text: root.active >= 0 && root.active < root.tapes.length
+                    ? root.tapes[root.active].name
+                    : "nothing inserted";
+                font-family: Theme.font-hand;
+                font-size: 32px;
+                font-weight: 700;
+                color: root.active >= 0 ? Theme.text : Theme.text-muted;
+            }
+        }
+
+        VerticalLayout {
+            spacing: 16px;
+
+            HorizontalLayout {
+                spacing: 12px;
+                alignment: start;
+
+                Text {
+                    text: "my tapes";
+                    font-family: Theme.font-hand;
+                    font-size: 44px;
+                    font-weight: 700;
+                    color: Theme.text;
+                }
+
+                Text {
+                    text: "(" + root.tapes.length + ")";
+                    font-family: Theme.font-hand;
+                    font-size: 26px;
+                    color: Theme.text-muted;
+                    vertical-alignment: center;
+                }
+            }
+
+            grid := Flickable {
+                property <int> columns: Math.max(1, Math.floor((self.width + root.gap) / (root.cell-width + root.gap)));
+
+                content-height: Math.ceil(root.tapes.length / columns) * (root.cell-height + root.gap);
+
+                for tape[i] in root.tapes: Rectangle {
+                    x: Math.mod(i, grid.columns) * (root.cell-width + root.gap);
+                    y: Math.floor(i / grid.columns) * (root.cell-height + root.gap);
+                    width: root.cell-width;
+                    height: root.cell-height;
+
+                    Cassette {
+                        transform-scale: 0.5;
+                        name: tape.name;
+                        subtitle: tape.source;
+                        side: Math.mod(i, 2) == 0 ? "A" : "B";
+                        marker: root.markers[Math.mod(i, root.markers.length)];
+                        playing: i == root.active;
+                    }
+                }
+            }
         }
     }
 }

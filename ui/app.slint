@@ -7,16 +7,26 @@ export component AppWindow inherits Window {
     in property <int> active: -1;
 
     title: "tapesgui";
-    preferred-width: 800px;
-    preferred-height: 600px;
+    preferred-width: 1100px;
+    preferred-height: 700px;
     background: Theme.background;
 
-    if root.tapes.length == 0: EmptyView {}
+    for i in Math.ceil(root.height / 34px): Rectangle {
+        y: 30px + i * 34px;
+        height: 1px;
+        background: Theme.rule;
+    }
+
+    Rectangle {
+        x: 18px;
+        width: 1.5px;
+        background: Theme.margin;
+    }
+
+    if root.tapes.length == 0: EmptyView { }
 
     if root.tapes.length > 0: LibraryView {
         tapes: root.tapes;
         active: root.active;
     }
-    
-
 }
