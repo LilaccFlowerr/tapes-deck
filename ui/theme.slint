@@ -5,7 +5,10 @@ export global Theme {
     out property <color> sheet: #262422;
     out property <color> text: #ebe5d9;
     out property <color> text-muted: #9a9286;
-    out property <color> rule: #34404f99;
-    out property <color> margin: #6e3a3ab3;
     out property <string> font-hand: "Caveat";
+    out property <[color]> markers: [#e8b94a, #6fb7e8, #e86f8a, #8ad16f, #b48ae8];
+
+    public pure function marker(i: int) -> color {
+        self.markers[Math.mod(Math.max(i, 0), self.markers.length)]
+    }
 }

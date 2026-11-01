@@ -1,4 +1,13 @@
+import { Cassette } from "cassette.slint";
+
 export component Player inherits Rectangle {
+    in property <bool> loaded;
+    in property <string> name;
+    in property <string> subtitle;
+    in property <string> side: "A";
+    in property <color> marker;
+    in property <bool> playing;
+
     width: 520px;
     height: 442px;
 
@@ -6,5 +15,15 @@ export component Player inherits Rectangle {
         width: parent.width;
         height: parent.height;
         source: @image-url("../../assets/player.svg");
+    }
+
+    if root.loaded: Cassette {
+        x: 60px;
+        y: 113px;
+        name: root.name;
+        subtitle: root.subtitle;
+        side: root.side;
+        marker: root.marker;
+        playing: root.playing;
     }
 }
