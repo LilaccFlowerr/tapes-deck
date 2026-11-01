@@ -7,11 +7,15 @@ export struct TapeInfo {
 }
 export component LibraryView inherits Rectangle {
     in property <[TapeInfo]> tapes;
+    in property <int> active: -1;
     
     HorizontalLayout {
-        for tape in root.tapes: Cassette {
+        spacing: 16px;
+
+        for tape[i] in root.tapes: Cassette {
             name: tape.name;
             subtitle: tape.source;
+            playing: i == root.active;
         }
     }
 }

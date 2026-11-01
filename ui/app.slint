@@ -4,7 +4,8 @@ import { LibraryView, TapeInfo } from "views/library.slint";
 
 export component AppWindow inherits Window {
     in property <[TapeInfo]> tapes;
-    
+    in property <int> active: -1;
+
     title: "tapesgui";
     preferred-width: 800px;
     preferred-height: 600px;
@@ -14,6 +15,8 @@ export component AppWindow inherits Window {
 
     if root.tapes.length > 0: LibraryView {
         tapes: root.tapes;
+        active: root.active;
     }
+    
 
 }
