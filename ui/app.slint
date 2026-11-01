@@ -1,15 +1,19 @@
 import { Theme } from "theme.slint";
 import { EmptyView } from "views/empty.slint";
-import { LibraryView } from "views/library.slint";
+import { LibraryView, TapeInfo } from "views/library.slint";
 
 export component AppWindow inherits Window {
+    in property <[TapeInfo]> tapes;
+    
     title: "tapesgui";
     preferred-width: 800px;
     preferred-height: 600px;
     background: Theme.background;
 
-    LibraryView {
-        
+    if root.tapes.length == 0: EmptyView {}
+
+    if root.tapes.length > 0: LibraryView {
+        tapes: root.tapes;
     }
 
 }

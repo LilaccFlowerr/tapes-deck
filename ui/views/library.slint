@@ -1,11 +1,17 @@
 import { Cassette } from "../components/cassette.slint";
 
-export component LibraryView inherits Rectangle {
-    HorizontalLayout {
-        spacing: 16px;
 
-        Cassette { name: "end-4"; playing: true; }
-        Cassette { name: "caelestia"; }
-        Cassette { name: "glyph"; }
+export struct TapeInfo {
+    name: string,
+    source: string,
+}
+export component LibraryView inherits Rectangle {
+    in property <[TapeInfo]> tapes;
+    
+    HorizontalLayout {
+        for tape in root.tapes: Cassette {
+            name: tape.name;
+            subtitle: tape.source;
+        }
     }
 }
