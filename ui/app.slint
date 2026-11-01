@@ -1,5 +1,6 @@
 import { Theme } from "theme.slint";
 import { EmptyView } from "views/empty.slint";
+import { LibraryView } from "views/library.slint";
 
 export component AppWindow inherits Window {
     title: "tapesgui";
@@ -7,9 +8,8 @@ export component AppWindow inherits Window {
     preferred-height: 600px;
     background: Theme.background;
 
-    callback add-tape();
-
-    EmptyView {
-        add-tape => { root.add-tape(); }
+    LibraryView {
+        
     }
+
 }

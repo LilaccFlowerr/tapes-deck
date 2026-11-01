@@ -1,0 +1,315 @@
+import { Theme } from "../theme.slint";
+import { InkPath } from "ink-path.slint";
+import { Sketch } from "sketch-paths.slint";
+
+component CassetteLine inherits InkPath {
+    width: 400px;
+    height: 256px;
+    vw: 400;
+    vh: 256;
+}
+
+component Dot inherits InkPath {
+    width: 12px;
+    height: 12px;
+    vw: 100;
+    vh: 100;
+}
+
+component Screw inherits Dot {
+    stroke-width: 1.2px;
+    commands: Sketch.screw;
+}
+
+component Hole inherits Dot {
+    stroke-width: 1.3px;
+    commands: Sketch.hole;
+}
+
+component HatchedShadow inherits Rectangle {
+    x: 9px;
+    y: 10px;
+    width: 396px;
+    height: 250px;
+    border-radius: 22px;
+    clip: true;
+
+    InkPath {
+        width: 420px;
+        height: 280px;
+        vw: 420;
+        vh: 280;
+        stroke: Theme.text-muted.with-alpha(0.55);
+        stroke-width: 1px;
+        commands: Sketch.hatch;
+    }
+}
+
+component Wave inherits Path {
+    in property <float> phase;
+    in property <bool> big;
+
+    x: -42px - Math.mod(phase, 42) * 1px;
+    width: 504px;
+    height: 40px;
+    viewbox-width: 504;
+    viewbox-height: 40;
+    stroke-width: 1.8px;
+    commands: big ? Sketch.wave-big : Sketch.wave-small;
+}
+
+component MarkerBand inherits Rectangle {
+    in property <color> marker;
+    in property <float> phase;
+
+    width: 348px;
+    height: 66px;
+    clip: true;
+
+    InkPath {
+        width: 352px;
+        height: 66px;
+        vw: 352;
+        vh: 66;
+        stroke: root.marker.with-alpha(0.7);
+        stroke-width: 12px;
+        commands: Sketch.scribble;
+    }
+
+    Wave {
+        y: (parent.height - self.height) / 2 - 3px;
+        big: true;
+        phase: root.phase;
+        stroke: Theme.text.with-alpha(0.7);
+    }
+
+    Wave {
+        y: (parent.height - self.height) / 2 + 3px;
+        big: false;
+        phase: root.phase * 0.6 + 21;
+        stroke: Theme.text.with-alpha(0.35);
+    }
+}
+
+component TapeTitle inherits Rectangle {
+    in property <string> name;
+    in property <string> subtitle;
+
+    width: 292px;
+    height: 70px;
+
+    Text {
+        x: 0;
+        y: 0;
+        width: 270px;
+        text: root.name;
+        font-family: Theme.font-hand;
+        font-size: 40px;
+        font-weight: 700;
+        color: Theme.text;
+        overflow: elide;
+    }
+
+    Text {
+        x: 2px;
+        y: 46px;
+        width: 290px;
+        text: root.subtitle;
+        font-family: Theme.font-hand;
+        font-size: 17px;
+        color: Theme.text-muted;
+        overflow: elide;
+    }
+}
+
+component SideBadge inherits Rectangle {
+    in property <string> side;
+    in property <color> marker;
+
+    width: 44px;
+    height: 44px;
+
+    InkPath {
+        width: parent.width;
+        height: parent.height;
+        vw: 100;
+        vh: 100;
+        stroke: root.marker.darker(25%);
+        stroke-width: 2px;
+        commands: Sketch.sidecircle;
+    }
+
+    Text {
+        text: root.side;
+        font-family: Theme.font-hand;
+        font-size: 28px;
+        font-weight: 700;
+        color: Theme.text;
+    }
+}
+
+component Reel inherits Rectangle {
+    in property <angle> angle;
+    in property <length> radius;
+    in property <length> cx;
+    in property <length> cy;
+
+    property <length> hub-size: 36px;
+
+    Rectangle {
+        x: root.cx - root.radius;
+        y: root.cy - root.radius;
+        width: root.radius * 2;
+        height: root.radius * 2;
+
+        InkPath {
+            width: parent.width;
+            height: parent.height;
+            vw: 100;
+            vh: 100;
+            stroke: Theme.text-muted;
+            stroke-width: 1.1px;
+            commands: Sketch.spiral;
+            transform-rotation: root.angle * 0.7;
+        }
+    }
+
+    Rectangle {
+        x: root.cx - root.hub-size / 2;
+        y: root.cy - root.hub-size / 2;
+        width: root.hub-size;
+        height: root.hub-size;
+
+        InkPath {
+            width: root.hub-size;
+            height: root.hub-size;
+            vw: 100;
+            vh: 100;
+            fill: Theme.sheet;
+            stroke-width: 1.6px;
+            commands: Sketch.hub;
+            transform-rotation: root.angle;
+        }
+    }
+}
+
+component ReelWindow inherits Rectangle {
+    in property <float> progress;
+    in property <angle> spin;
+
+    width: 196px;
+    height: 48px;
+    border-radius: 24px;
+    clip: true;
+
+    Reel {
+        cx: 24px;
+        cy: 24px;
+        radius: 18px + 28px * (1 - root.progress);
+        angle: root.spin;
+    }
+
+    Reel {
+        cx: 172px;
+        cy: 24px;
+        radius: 18px + 28px * root.progress;
+        angle: root.spin + 30deg;
+    }
+}
+
+export component Cassette inherits Rectangle {
+    in property <string> name;
+    in property <string> subtitle;
+    in property <string> side: "A";
+    in property <color> marker;
+    in-out property <bool> playing;
+    in-out property <float> progress: 0.25;
+
+    property <angle> spin;
+    property <float> phase;
+
+    width: 400px;
+    height: 256px;
+
+    Timer {
+        interval: 16ms;
+        running: root.playing;
+        triggered => {
+            root.spin += 4deg;
+            root.phase += 1.1;
+            root.progress = Math.min(1, root.progress + 0.0005);
+        }
+    }
+
+    HatchedShadow { }
+
+    CassetteLine {
+        commands: Sketch.body1;
+        fill: Theme.sheet;
+        stroke-width: 2px;
+    }
+
+    CassetteLine {
+        commands: Sketch.body2;
+        stroke: Theme.text.with-alpha(0.45);
+        stroke-width: 1.1px;
+    }
+
+    Screw { x: 12px; y: 12px; }
+    Screw { x: 376px; y: 12px; }
+    Screw { x: 12px; y: 232px; }
+    Screw { x: 376px; y: 232px; }
+
+    CassetteLine {
+        commands: Sketch.label1;
+        stroke-width: 1.5px;
+    }
+
+    MarkerBand {
+        x: 26px;
+        y: 100px;
+        marker: root.marker;
+        phase: root.phase;
+    }
+
+    TapeTitle {
+        x: 40px;
+        y: 18px;
+        name: root.name;
+        subtitle: root.subtitle;
+    }
+
+    SideBadge {
+        x: 318px;
+        y: 28px;
+        side: root.side;
+        marker: root.marker;
+    }
+
+    CassetteLine {
+        commands: Sketch.window1;
+        fill: Theme.sheet;
+        stroke-width: 1.8px;
+    }
+
+    ReelWindow {
+        x: 102px;
+        y: 114px;
+        progress: root.progress;
+        spin: root.spin;
+    }
+
+    CassetteLine {
+        commands: Sketch.window2;
+        stroke: Theme.text.with-alpha(0.4);
+        stroke-width: 1px;
+    }
+
+    CassetteLine {
+        commands: Sketch.trap;
+        stroke-width: 1.6px;
+    }
+
+    Hole { x: 146px; y: 220px; }
+    Hole { x: 242px; y: 220px; }
+}

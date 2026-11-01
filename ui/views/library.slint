@@ -1,2 +1,11 @@
-// Shows the installed tapes. Not built yet.
-export component LibraryView inherits Rectangle {}
+import { Cassette } from "../components/cassette.slint";
+
+export component LibraryView inherits Rectangle {
+    HorizontalLayout {
+        spacing: 16px;
+
+        Cassette { name: "end-4"; playing: true; }
+        Cassette { name: "caelestia"; }
+        Cassette { name: "glyph"; }
+    }
+}

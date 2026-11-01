@@ -1,8 +1,6 @@
 import { Theme } from "../theme.slint";
 
-// Shown when no tapes are installed yet.
 export component EmptyView inherits VerticalLayout {
-    callback add-tape();
 
     alignment: center;
     spacing: 12px;
@@ -10,7 +8,6 @@ export component EmptyView inherits VerticalLayout {
     TouchArea {
         height: 260px;
         mouse-cursor: pointer;
-        clicked => { root.add-tape(); }
 
         Image {
             width: 320px;

@@ -20,7 +20,7 @@ cargo run
 ```
 tapesgui/
 ├── build.rs          compiles ui/app.slint
-├── assets/           images and icons
+├── assets/           images, icons and fonts
 ├── ui/               everything you see (Slint)
 │   ├── app.slint     the window; picks which view to show
 │   ├── theme.slint   shared colors and sizes
@@ -64,3 +64,4 @@ Rule of thumb: if you copy a piece of Slint into a second view, move it to `comp
 
 **`assets/`** holds files loaded by the UI, referenced from Slint with `@image-url(...)` relative
 to the `.slint` file. `add-tape.svg` is a public-domain cassette drawing from Openclipart.
+`fonts/Caveat.ttf` is the handwriting font (SIL Open Font License, see `fonts/OFL.txt`).
