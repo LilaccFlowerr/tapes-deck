@@ -1,0 +1,33 @@
+import { Theme } from "../theme.slint";
+
+// Shown when no tapes are installed yet.
+export component EmptyView inherits VerticalLayout {
+    callback add-tape();
+
+    alignment: center;
+    spacing: 12px;
+
+    TouchArea {
+        height: 260px;
+        mouse-cursor: pointer;
+        clicked => { root.add-tape(); }
+
+        Image {
+            width: 320px;
+            height: 243px;
+            source: @image-url("../../assets/add-tape.svg");
+        }
+    }
+    Text {
+        text: "add a tape";
+        horizontal-alignment: center;
+        font-size: 24px;
+        color: Theme.text;
+    }
+    Text {
+        text: "no tapes yet";
+        horizontal-alignment: center;
+        font-size: 14px;
+        color: Theme.text-muted;
+    }
+}
