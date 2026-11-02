@@ -14,9 +14,12 @@ export component AppWindow inherits Window {
     in property <[string]> active-targets;
     in property <bool> busy;
     in property <string> status;
+    in property <string> output;
+    in property <bool> missing;
 
     callback eject();
     callback insert(int);
+    callback open-tapes-page();
 
     property <int> open-tape: -1;
 
@@ -25,7 +28,10 @@ export component AppWindow inherits Window {
     preferred-height: 700px;
     background: Theme.background;
 
-    if root.tapes.length == 0: EmptyView { }
+    if root.tapes.length == 0: EmptyView {
+        missing: root.missing;
+        open-tapes-page => { root.open-tapes-page(); }
+    }
 
     if root.tapes.length > 0 && root.open-tape < 0: LibraryView {
         tapes: root.tapes;
@@ -35,6 +41,7 @@ export component AppWindow inherits Window {
         targets: root.active-targets;
         busy: root.busy;
         status: root.status;
+        output: root.output;
         open-tape(i) => { root.open-tape = i; }
         eject => { root.eject(); }
         insert(i) => { root.insert(i); }

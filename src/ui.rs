@@ -7,6 +7,15 @@ use crate::{tapes, AppWindow, TapeInfo};
 pub fn setup(ui: &AppWindow) {
     load_tapes(ui);
 
+    ui.on_open_tapes_page(|| {
+        let _ = std::process::Command::new("xdg-open")
+            .arg(tapes::PAGE)
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn();
+    });
+
     let weak = ui.as_weak();
     ui.on_eject(move || {
         run_in_background(&weak, || tapes::eject(tapes::Options::default()));
@@ -40,6 +49,7 @@ fn run_in_background(weak: &Weak<AppWindow>, job: impl FnOnce() -> tapes::Output
         let output = job();
         let _ = weak.upgrade_in_event_loop(move |ui| {
             ui.set_busy(false);
+            ui.set_output(output.text.trim().into());
             if !output.ok {
                 ui.set_status(last_line(&output.text).into());
             }
@@ -49,6 +59,11 @@ fn run_in_background(weak: &Weak<AppWindow>, job: impl FnOnce() -> tapes::Output
 }
 
 pub fn load_tapes(ui: &AppWindow) {
+    ui.set_missing(!tapes::installed());
+    if ui.get_missing() {
+        return;
+    }
+
     let list = tapes::list();
     let details: Vec<tapes::Details> = list.iter().map(|tape| tapes::details(&tape.name)).collect();
 
@@ -80,8 +95,7 @@ fn strings(items: Vec<String>) -> ModelRc<SharedString> {
 fn last_line(text: &str) -> &str {
     text.lines()
         .map(str::trim)
-        .filter(|line| !line.is_empty())
-        .last()
+        .rfind(|line| !line.is_empty())
         .unwrap_or("something went wrong")
 }
 

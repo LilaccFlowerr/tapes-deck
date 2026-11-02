@@ -394,6 +394,7 @@ export component LibraryView inherits Rectangle {
     in property <[string]> targets;
     in property <bool> busy;
     in property <string> status;
+    in property <string> output;
 
     callback open-tape(int);
     callback eject();
@@ -401,6 +402,7 @@ export component LibraryView inherits Rectangle {
 
     property <int> pressed: -1;
     property <int> confirm-target: -1;
+    property <bool> show-output;
     property <bool> dragging;
     property <length> press-x;
     property <length> press-y;
@@ -553,6 +555,14 @@ export component LibraryView inherits Rectangle {
             width: 170px;
             text: "+ add tape";
         }
+
+        if root.output != "": Button {
+            x: parent.width - 170px - 32px - self.width - 16px;
+            y: (parent.height - self.height) / 2;
+            width: 120px;
+            text: "output";
+            clicked => { root.show-output = true; }
+        }
     }
 
     if root.dragging && root.pressed >= 0 && root.pressed < root.tapes.length: Rectangle {
@@ -639,6 +649,64 @@ export component LibraryView inherits Rectangle {
                             root.insert(root.confirm-target);
                             root.confirm-target = -1;
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    if root.show-output: Rectangle {
+        width: root.width;
+        height: root.height;
+        background: #000000a0;
+
+        TouchArea {
+            clicked => { root.show-output = false; }
+        }
+
+        Rectangle {
+            width: Math.min(720px, root.width - 48px);
+            height: Math.min(520px, root.height - 48px);
+            background: Theme.sheet;
+            border-radius: 12px;
+            border-width: 1.5px;
+            border-color: Theme.text-muted.with-alpha(0.4);
+
+            TouchArea { }
+
+            VerticalLayout {
+                padding: 28px;
+                spacing: 12px;
+
+                Text {
+                    text: "last output";
+                    font-family: Theme.font-hand;
+                    font-size: 34px;
+                    font-weight: 700;
+                    color: Theme.text;
+                }
+
+                output-view := Flickable {
+                    vertical-stretch: 1;
+                    content-height: output-text.preferred-height;
+
+                    output-text := Text {
+                        width: output-view.width;
+                        text: root.output;
+                        font-family: "JetBrains Mono";
+                        font-size: 12px;
+                        color: Theme.text.with-alpha(0.85);
+                        wrap: word-wrap;
+                    }
+                }
+
+                HorizontalLayout {
+                    alignment: end;
+
+                    Button {
+                        width: 110px;
+                        text: "close";
+                        clicked => { root.show-output = false; }
                     }
                 }
             }
