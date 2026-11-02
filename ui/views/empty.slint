@@ -4,13 +4,19 @@ export component EmptyView inherits VerticalLayout {
     in property <bool> missing;
 
     callback open-tapes-page();
+    callback add-tape();
 
     alignment: center;
     spacing: 12px;
 
     TouchArea {
         height: 260px;
-        mouse-cursor: pointer;
+        mouse-cursor: root.missing ? MouseCursor.default : MouseCursor.pointer;
+        clicked => {
+            if !root.missing {
+                root.add-tape();
+            }
+        }
 
         Image {
             width: 320px;

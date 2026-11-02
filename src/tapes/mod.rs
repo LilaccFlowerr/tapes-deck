@@ -44,8 +44,6 @@ pub fn eject(options: Options) -> Output {
     run(with_options(vec!["eject".into()], options))
 }
 
-// Used by the install page, once it exists.
-#[allow(dead_code)]
 pub fn install(source: &str, name: Option<&str>, branch: Option<&str>, dir: Option<&str>) -> Output {
     let mut args = vec!["install".to_string(), source.to_string()];
     for (flag, value) in [("--name", name), ("--branch", branch), ("--dir", dir)] {

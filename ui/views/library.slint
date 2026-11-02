@@ -397,6 +397,7 @@ export component LibraryView inherits Rectangle {
     in property <string> output;
 
     callback open-tape(int);
+    callback add-tape();
     callback eject();
     callback insert(int);
 
@@ -554,6 +555,7 @@ export component LibraryView inherits Rectangle {
             y: (parent.height - self.height) / 2;
             width: 170px;
             text: "+ add tape";
+            clicked => { root.add-tape(); }
         }
 
         if root.output != "": Button {

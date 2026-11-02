@@ -17,6 +17,13 @@ pub fn setup(ui: &AppWindow) {
     });
 
     let weak = ui.as_weak();
+    ui.on_install(move |source, name, branch, dir| {
+        run_in_background(&weak, move || {
+            tapes::install(&source, Some(&name), Some(&branch), Some(&dir))
+        });
+    });
+
+    let weak = ui.as_weak();
     ui.on_eject(move || {
         run_in_background(&weak, || tapes::eject(tapes::Options::default()));
     });
@@ -50,7 +57,10 @@ fn run_in_background(weak: &Weak<AppWindow>, job: impl FnOnce() -> tapes::Output
         let _ = weak.upgrade_in_event_loop(move |ui| {
             ui.set_busy(false);
             ui.set_output(output.text.trim().into());
-            if !output.ok {
+            if output.ok {
+                // A finished job closes the install page; for other jobs it is already closed.
+                ui.set_adding(false);
+            } else {
                 ui.set_status(last_line(&output.text).into());
             }
             load_tapes(&ui);
