@@ -17,7 +17,16 @@ pub fn setup(ui: &AppWindow) {
         let Some(ui) = weak.upgrade() else { return };
         let Some(tape) = ui.get_tapes().row_data(index as usize) else { return };
         let name = tape.name.to_string();
-        run_in_background(&weak, move || tapes::insert(&name, tapes::Options::default()));
+        let swap = ui.get_active() >= 0;
+        run_in_background(&weak, move || {
+            if swap {
+                let ejected = tapes::eject(tapes::Options::default());
+                if !ejected.ok {
+                    return ejected;
+                }
+            }
+            tapes::insert(&name, tapes::Options::default())
+        });
     });
 }
 

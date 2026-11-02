@@ -2,6 +2,7 @@
 
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Tape {
@@ -51,12 +52,23 @@ where
     I: IntoIterator<Item = S>,
     S: AsRef<std::ffi::OsStr>,
 {
-    match Command::new(bin()).args(args).stdin(Stdio::null()).output() {
-        Ok(out) => {
-            let mut text = String::from_utf8_lossy(&out.stdout).into_owned();
-            text.push_str(&String::from_utf8_lossy(&out.stderr));
-            Output { ok: out.status.success(), text }
-        }
+    // Hooks may start daemons (`setsid -f ...`) that inherit our stdout/stderr. With pipes,
+    // reading the output would wait until those daemons exit, so capture into a file instead.
+    static COUNTER: AtomicUsize = AtomicUsize::new(0);
+    let id = COUNTER.fetch_add(1, Ordering::Relaxed);
+    let path = std::env::temp_dir().join(format!("tapesgui-{}-{id}.out", std::process::id()));
+    let result = std::fs::File::create(&path).and_then(|file| {
+        Command::new(bin())
+            .args(args)
+            .stdin(Stdio::null())
+            .stdout(file.try_clone()?)
+            .stderr(file)
+            .status()
+    });
+    let text = std::fs::read(&path).map(|b| String::from_utf8_lossy(&b).into_owned()).unwrap_or_default();
+    let _ = std::fs::remove_file(&path);
+    match result {
+        Ok(status) => Output { ok: status.success(), text },
         Err(e) => Output { ok: false, text: format!("couldn't start tapes-v2: {e}") },
     }
 }

@@ -400,6 +400,7 @@ export component LibraryView inherits Rectangle {
     callback insert(int);
 
     property <int> pressed: -1;
+    property <int> confirm-target: -1;
     property <bool> dragging;
     property <length> press-x;
     property <length> press-y;
@@ -443,7 +444,11 @@ export component LibraryView inherits Rectangle {
     function drop() {
         if root.dragging {
             if root.over-deck && root.pressed != root.active {
-                root.insert(root.pressed);
+                if root.has-tape {
+                    root.confirm-target = root.pressed;
+                } else {
+                    root.insert(root.pressed);
+                }
             }
         } else if root.pressed >= 0 {
             root.open-tape(root.pressed);
@@ -566,6 +571,77 @@ export component LibraryView inherits Rectangle {
             subtitle: root.tapes[root.pressed].source;
             side: Math.mod(root.pressed, 2) == 0 ? "A" : "B";
             marker: Theme.marker(root.pressed);
+        }
+    }
+
+    if root.confirm-target >= 0 && root.confirm-target < root.tapes.length && root.has-tape: Rectangle {
+        width: root.width;
+        height: root.height;
+        background: #000000a0;
+
+        TouchArea {
+            clicked => { root.confirm-target = -1; }
+        }
+
+        Rectangle {
+            width: Math.min(440px, root.width - 48px);
+            height: 250px;
+            background: Theme.sheet;
+            border-radius: 12px;
+            border-width: 1.5px;
+            border-color: Theme.marker(root.confirm-target);
+
+            TouchArea { }
+
+            VerticalLayout {
+                padding: 28px;
+                spacing: 12px;
+
+                Text {
+                    text: "swap tapes?";
+                    font-family: Theme.font-hand;
+                    font-size: 34px;
+                    font-weight: 700;
+                    color: Theme.text;
+                }
+
+                Text {
+                    text: root.tapes[root.active].name + " gets ejected first";
+                    font-family: Theme.font-hand;
+                    font-size: 22px;
+                    color: Theme.text;
+                    wrap: word-wrap;
+                }
+
+                Text {
+                    text: "then " + root.tapes[root.confirm-target].name + " goes in"
+                        + (root.eject-hooks.length > 0 ? " · " + root.eject-hooks.length + " eject hooks run" : "");
+                    font-family: Theme.font-hand;
+                    font-size: 19px;
+                    color: Theme.text-muted;
+                    wrap: word-wrap;
+                }
+
+                HorizontalLayout {
+                    alignment: end;
+                    spacing: 16px;
+
+                    Button {
+                        width: 110px;
+                        text: "cancel";
+                        clicked => { root.confirm-target = -1; }
+                    }
+
+                    Button {
+                        width: 130px;
+                        text: "swap";
+                        clicked => {
+                            root.insert(root.confirm-target);
+                            root.confirm-target = -1;
+                        }
+                    }
+                }
+            }
         }
     }
 }
