@@ -1,0 +1,10 @@
+import { Theme } from "../theme.slint";
+
+export component InkPath inherits Path {
+    in property <float> vw;
+    in property <float> vh;
+    viewbox-width: vw;
+    viewbox-height: vh;
+    stroke: Theme.text;
+    stroke-width: 1.8px;
+}

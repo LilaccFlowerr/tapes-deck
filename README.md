@@ -7,7 +7,26 @@ insert, eject and install them without the terminal.
 Built with Rust and [Slint](https://slint.dev). It doesn't reimplement tapes-v2: it runs the
 `tapes-v2` command and reads its output.
 
-## Running
+## Installing
+
+tapesgui needs [tapes-v2](https://github.com/futurekismo-oss/tapes-v2) to be installed.
+It only runs on Linux (x86_64).
+
+Download the latest release from the
+[releases page](https://github.com/LilaccFlowerr/tapes-gui/releases), then:
+
+```
+tar -xzf tapesgui-x86_64-unknown-linux-gnu-*.tgz
+install -Dm755 tapesgui-x86_64-unknown-linux-gnu-*/tapesgui ~/.local/bin/tapesgui
+tapesgui
+```
+
+Or grab the plain `tapesgui-x86_64-unknown-linux-gnu` file, make it executable with `chmod +x`
+and run it. Make sure `~/.local/bin` is in your `$PATH`.
+
+It needs `fontconfig` at runtime, which almost every desktop already has.
+
+## Running from source
 
 ```
 cargo run
@@ -20,7 +39,7 @@ cargo run
 ```
 tapesgui/
 ├── build.rs          compiles ui/app.slint
-├── assets/           images and icons
+├── assets/           images, icons and fonts
 ├── ui/               everything you see (Slint)
 │   ├── app.slint     the window; picks which view to show
 │   ├── theme.slint   shared colors and sizes
@@ -64,3 +83,4 @@ Rule of thumb: if you copy a piece of Slint into a second view, move it to `comp
 
 **`assets/`** holds files loaded by the UI, referenced from Slint with `@image-url(...)` relative
 to the `.slint` file. `add-tape.svg` is a public-domain cassette drawing from Openclipart.
+`fonts/Caveat.ttf` is the handwriting font (SIL Open Font License, see `fonts/OFL.txt`).

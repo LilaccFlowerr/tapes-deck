@@ -1,1 +1,117 @@
-//! Glue between `tapes` and the Slint UI: data in, callbacks out.
+use std::rc::Rc;
+
+use slint::{ComponentHandle, Model, ModelRc, SharedString, VecModel, Weak};
+
+use crate::{tapes, AppWindow, TapeInfo};
+
+pub fn setup(ui: &AppWindow) {
+    load_tapes(ui);
+
+    ui.on_open_tapes_page(|| {
+        let _ = std::process::Command::new("xdg-open")
+            .arg(tapes::PAGE)
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn();
+    });
+
+    let weak = ui.as_weak();
+    ui.on_install(move |source, name, branch, dir| {
+        run_in_background(&weak, move || {
+            tapes::install(&source, Some(&name), Some(&branch), Some(&dir))
+        });
+    });
+
+    let weak = ui.as_weak();
+    ui.on_eject(move || {
+        run_in_background(&weak, || tapes::eject(tapes::Options::default()));
+    });
+
+    let weak = ui.as_weak();
+    ui.on_insert(move |index| {
+        let Some(ui) = weak.upgrade() else { return };
+        let Some(tape) = ui.get_tapes().row_data(index as usize) else { return };
+        let name = tape.name.to_string();
+        let swap = ui.get_active() >= 0;
+        run_in_background(&weak, move || {
+            if swap {
+                let ejected = tapes::eject(tapes::Options::default());
+                if !ejected.ok {
+                    return ejected;
+                }
+            }
+            tapes::insert(&name, tapes::Options::default())
+        });
+    });
+}
+
+fn run_in_background(weak: &Weak<AppWindow>, job: impl FnOnce() -> tapes::Output + Send + 'static) {
+    let Some(ui) = weak.upgrade() else { return };
+    ui.set_busy(true);
+    ui.set_status("".into());
+
+    let weak = weak.clone();
+    std::thread::spawn(move || {
+        let output = job();
+        let _ = weak.upgrade_in_event_loop(move |ui| {
+            ui.set_busy(false);
+            ui.set_output(output.text.trim().into());
+            if output.ok {
+                // A finished job closes the install page; for other jobs it is already closed.
+                ui.set_adding(false);
+            } else {
+                ui.set_status(last_line(&output.text).into());
+            }
+            load_tapes(&ui);
+        });
+    });
+}
+
+pub fn load_tapes(ui: &AppWindow) {
+    ui.set_missing(!tapes::installed());
+    if ui.get_missing() {
+        return;
+    }
+
+    let list = tapes::list();
+    let details: Vec<tapes::Details> = list.iter().map(|tape| tapes::details(&tape.name)).collect();
+
+    let infos: Vec<TapeInfo> = list
+        .iter()
+        .zip(&details)
+        .map(|(tape, details)| TapeInfo {
+            name: tape.name.as_str().into(),
+            source: source(&details.description).into(),
+        })
+        .collect();
+
+    ui.set_tapes(ModelRc::from(Rc::new(VecModel::from(infos))));
+
+    let active = tapes::active(&list);
+    ui.set_active(active.map_or(-1, |i| i as i32));
+
+    let active_details = active.map(|i| details[i].clone()).unwrap_or_default();
+    ui.set_active_insert_hooks(strings(active_details.insert_hooks));
+    ui.set_active_eject_hooks(strings(active_details.eject_hooks));
+    ui.set_active_targets(strings(active_details.targets));
+}
+
+fn strings(items: Vec<String>) -> ModelRc<SharedString> {
+    let items: Vec<SharedString> = items.into_iter().map(SharedString::from).collect();
+    ModelRc::from(Rc::new(VecModel::from(items)))
+}
+
+fn last_line(text: &str) -> &str {
+    text.lines()
+        .map(str::trim)
+        .rfind(|line| !line.is_empty())
+        .unwrap_or("something went wrong")
+}
+
+fn source(description: &str) -> &str {
+    description
+        .strip_prefix("Tape installed from ")
+        .unwrap_or(description)
+        .trim_start_matches("https://")
+}

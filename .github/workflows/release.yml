@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y pkg-config libfontconfig1-dev
+
+    - name: Build (release mode)
+      run: cargo build --release --verbose
+
+    - name: Package and release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        RAW_BIN="tapesgui-x86_64-unknown-linux-gnu"
+        ARCHIVE_NAME="${RAW_BIN}-${{ github.ref_name }}"
+
+        cp target/release/tapesgui "$RAW_BIN"
+
+        mkdir -p "$ARCHIVE_NAME"
+        cp target/release/tapesgui "$ARCHIVE_NAME/"
+        tar -czf "${ARCHIVE_NAME}.tgz" "$ARCHIVE_NAME"
+
+        gh release create ${{ github.ref_name }} "$RAW_BIN" "${ARCHIVE_NAME}.tgz" \
+          --title "Release ${{ github.ref_name }}" \
+          --generate-notes

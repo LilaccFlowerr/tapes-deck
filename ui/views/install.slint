@@ -1,0 +1,105 @@
+import { Theme } from "../theme.slint";
+import { Button } from "../components/button.slint";
+import { Field } from "../components/field.slint";
+import { Panel } from "../components/panel.slint";
+
+export component InstallView inherits Rectangle {
+    in property <bool> busy;
+    in property <string> status;
+
+    callback back();
+    callback install(string, string, string, string);
+
+    property <bool> tried;
+    property <bool> ready: source.text != "" && !root.busy;
+
+    function submit() {
+        if root.ready {
+            root.tried = true;
+            root.install(source.text, name.text, branch.text, dir.text);
+        }
+    }
+
+    Panel {
+        width: Math.min(480px, root.width - 48px);
+        height: card.preferred-height + 56px;
+
+        card := VerticalLayout {
+            x: 28px;
+            y: 28px;
+            width: parent.width - 56px;
+            alignment: start;
+            spacing: 14px;
+
+            Text {
+                text: "add a tape";
+                font-family: Theme.font-hand;
+                font-size: 40px;
+                font-weight: 700;
+                color: Theme.text;
+            }
+
+            source := Field {
+                label: "source";
+                placeholder: "user/repo, url or path";
+                accepted => { root.submit(); }
+            }
+
+            name := Field {
+                label: "name";
+                placeholder: "optional";
+                accepted => { root.submit(); }
+            }
+
+            HorizontalLayout {
+                spacing: 14px;
+
+                branch := Field {
+                    label: "branch";
+                    placeholder: "optional";
+                    accepted => { root.submit(); }
+                }
+
+                dir := Field {
+                    label: "dir";
+                    placeholder: "optional";
+                    accepted => { root.submit(); }
+                }
+            }
+
+            if root.tried && !root.busy && root.status != "": Text {
+                text: root.status;
+                font-size: 14px;
+                color: #e86f8a;
+                wrap: word-wrap;
+            }
+
+            HorizontalLayout {
+                alignment: end;
+
+                Button {
+                    width: 150px;
+                    text: root.busy ? "installing…" : "install";
+                    enabled: root.ready;
+                    clicked => { root.submit(); }
+                }
+            }
+        }
+    }
+
+    back-button := TouchArea {
+        x: 32px;
+        y: 28px;
+        width: 90px;
+        height: 36px;
+        mouse-cursor: pointer;
+        clicked => { root.back(); }
+
+        Text {
+            text: "← back";
+            font-family: Theme.font-hand;
+            font-size: 22px;
+            color: back-button.has-hover ? Theme.text : Theme.text-muted;
+        }
+    }
+}

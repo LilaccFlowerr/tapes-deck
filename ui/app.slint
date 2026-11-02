@@ -1,15 +1,67 @@
 import { Theme } from "theme.slint";
+import { TapeInfo } from "types.slint";
 import { EmptyView } from "views/empty.slint";
+import { InstallView } from "views/install.slint";
+import { LibraryView } from "views/library.slint";
+import { TapeView } from "views/tape.slint";
+
+export { TapeInfo }
 
 export component AppWindow inherits Window {
+    in property <[TapeInfo]> tapes;
+    in property <int> active: -1;
+    in property <[string]> active-insert-hooks;
+    in property <[string]> active-eject-hooks;
+    in property <[string]> active-targets;
+    in property <bool> busy;
+    in property <string> status;
+    in property <string> output;
+    in property <bool> missing;
+    in-out property <bool> adding;
+
+    callback eject();
+    callback insert(int);
+    callback open-tapes-page();
+    callback install(string, string, string, string);
+
+    property <int> open-tape: -1;
+
     title: "tapesgui";
-    preferred-width: 800px;
-    preferred-height: 600px;
+    preferred-width: 1100px;
+    preferred-height: 700px;
     background: Theme.background;
 
-    callback add-tape();
+    if root.tapes.length == 0 && !root.adding: EmptyView {
+        missing: root.missing;
+        add-tape => { root.adding = true; }
+        open-tapes-page => { root.open-tapes-page(); }
+    }
 
-    EmptyView {
-        add-tape => { root.add-tape(); }
+    if root.tapes.length > 0 && root.open-tape < 0 && !root.adding: LibraryView {
+        tapes: root.tapes;
+        active: root.active;
+        insert-hooks: root.active-insert-hooks;
+        eject-hooks: root.active-eject-hooks;
+        targets: root.active-targets;
+        busy: root.busy;
+        status: root.status;
+        output: root.output;
+        open-tape(i) => { root.open-tape = i; }
+        add-tape => { root.adding = true; }
+        eject => { root.eject(); }
+        insert(i) => { root.insert(i); }
+    }
+
+    if root.open-tape >= 0 && root.open-tape < root.tapes.length: TapeView {
+        tape: root.tapes[root.open-tape];
+        marker: Theme.marker(root.open-tape);
+        back => { root.open-tape = -1; }
+    }
+
+    if root.adding: InstallView {
+        busy: root.busy;
+        status: root.status;
+        back => { root.adding = false; }
+        install(source, name, branch, dir) => { root.install(source, name, branch, dir); }
     }
 }
