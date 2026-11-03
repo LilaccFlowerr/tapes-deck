@@ -38,6 +38,17 @@ jobs:
         cp target/release/tapesgui "$ARCHIVE_NAME/"
         tar -czf "${ARCHIVE_NAME}.tgz" "$ARCHIVE_NAME"
 
-        gh release create ${{ github.ref_name }} "$RAW_BIN" "${ARCHIVE_NAME}.tgz" \
+        # AppImage: a single file that runs without installing
+        mkdir -p AppDir/usr/bin
+        cp target/release/tapesgui AppDir/usr/bin/
+        cp packaging/tapesgui.desktop AppDir/
+        cp assets/add-tape.svg AppDir/tapesgui.svg
+        ln -s usr/bin/tapesgui AppDir/AppRun
+        curl -fsSL -o appimagetool \
+          https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+        chmod +x appimagetool
+        ARCH=x86_64 ./appimagetool --appimage-extract-and-run AppDir tapesgui-x86_64.AppImage
+
+        gh release create ${{ github.ref_name }} "$RAW_BIN" "${ARCHIVE_NAME}.tgz" tapesgui-x86_64.AppImage \
           --title "Release ${{ github.ref_name }}" \
           --generate-notes

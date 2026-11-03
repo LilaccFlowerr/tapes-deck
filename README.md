@@ -12,19 +12,47 @@ Built with Rust and [Slint](https://slint.dev). It doesn't reimplement tapes-v2:
 tapesgui needs [tapes-v2](https://github.com/futurekismo-oss/tapes-v2) to be installed.
 It only runs on Linux (x86_64).
 
-Download the latest release from the
-[releases page](https://github.com/LilaccFlowerr/tapes-gui/releases), then:
+**One command** (installs to `~/.local/bin` and adds an app-launcher entry):
 
 ```
-tar -xzf tapesgui-x86_64-unknown-linux-gnu-*.tgz
-install -Dm755 tapesgui-x86_64-unknown-linux-gnu-*/tapesgui ~/.local/bin/tapesgui
-tapesgui
+curl -fsSL https://raw.githubusercontent.com/LilaccFlowerr/tapes-gui/main/install.sh | sh
 ```
 
-Or grab the plain `tapesgui-x86_64-unknown-linux-gnu` file, make it executable with `chmod +x`
-and run it. Make sure `~/.local/bin` is in your `$PATH`.
+Make sure `~/.local/bin` is in your `$PATH`; the script tells you if it isn't.
+
+**AppImage**: download `tapesgui-x86_64.AppImage` from the
+[releases page](https://github.com/LilaccFlowerr/tapes-gui/releases), `chmod +x` it and run it.
+No install needed.
+
+**Arch Linux**: build and install a pacman package from the `PKGBUILD` in this repo:
+
+```
+git clone https://github.com/LilaccFlowerr/tapes-gui
+cd tapes-gui/packaging/aur
+makepkg -si
+```
+
+Remove it later with `sudo pacman -R tapesgui-bin`.
+
+The releases page also has the plain `tapesgui-x86_64-unknown-linux-gnu` binary and a `.tgz`.
 
 It needs `fontconfig` at runtime, which almost every desktop already has.
+
+### Uninstalling
+
+If you used the install script:
+
+```
+rm ~/.local/bin/tapesgui \
+   ~/.local/share/applications/tapesgui.desktop \
+   ~/.local/share/icons/hicolor/scalable/apps/tapesgui.svg
+```
+
+An AppImage is just a file; delete it.
+
+## License
+
+GPL-3.0, see [LICENSE](LICENSE).
 
 ## Running from source
 
