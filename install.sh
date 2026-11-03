@@ -32,7 +32,7 @@ fetch "https://github.com/$REPO/releases/latest/download/tapes-deck-x86_64-unkno
 install -m755 "$tmp" "$BIN_DIR/tapes-deck"
 
 raw="https://raw.githubusercontent.com/$REPO/main"
-fetch "$raw/assets/add-tape.svg" "$DATA_DIR/icons/hicolor/scalable/apps/tapes-deck.svg"
+fetch "$raw/assets/icon.svg" "$DATA_DIR/icons/hicolor/scalable/apps/tapes-deck.svg"
 fetch "$raw/packaging/tapes-deck.desktop" "$DATA_DIR/applications/tapes-deck.desktop"
 
 echo "Installed to $BIN_DIR/tapes-deck"

@@ -120,7 +120,7 @@ Rule of thumb: if you copy a piece of Slint into a second view, move it to `comp
   call `run()`.
 
 **`assets/`** holds files loaded by the UI, referenced from Slint with `@image-url(...)` relative
-to the `.slint` file. `add-tape.svg` is a public-domain cassette drawing from Openclipart.
+to the `.slint` file. `add-tape.svg` is a public-domain cassette drawing from Openclipart, and `icon.svg` is a copy of it used as a placeholder app icon.
 `fonts/Caveat.ttf` is the handwriting font (SIL Open Font License, see `fonts/OFL.txt`).
 
 ## Releases

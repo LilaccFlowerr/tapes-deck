@@ -3,7 +3,7 @@
 
 <h1 align="center">tapes-deck</h1>
 
-<!-- TODO: logo, e.g. <img src="assets/icon.svg" alt="tapes-deck logo" width="200"> -->
+<img src="assets/icon.svg" alt="tapes-deck logo" width="200">
 
 The GUI to make ricing easier.
 Browse your dotfile setups, switch between them with a click and install new ones from a git repo.

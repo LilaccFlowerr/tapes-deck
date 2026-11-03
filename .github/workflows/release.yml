@@ -42,7 +42,7 @@ jobs:
         mkdir -p AppDir/usr/bin
         cp target/release/tapes-deck AppDir/usr/bin/
         cp packaging/tapes-deck.desktop AppDir/
-        cp assets/add-tape.svg AppDir/tapes-deck.svg
+        cp assets/icon.svg AppDir/tapes-deck.svg
         ln -s usr/bin/tapes-deck AppDir/AppRun
         curl -fsSL -o appimagetool \
           https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
