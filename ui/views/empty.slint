@@ -1,60 +1,63 @@
 import { Theme } from "../theme.slint";
+import { View } from "../components/view.slint";
 
-export component EmptyView inherits VerticalLayout {
+export component EmptyView inherits View {
     in property <bool> missing;
 
     callback open-tapes-page();
     callback add-tape();
 
-    alignment: center;
-    spacing: 12px;
+    VerticalLayout {
+        alignment: center;
+        spacing: 12px;
 
-    TouchArea {
-        height: 260px;
-        mouse-cursor: root.missing ? MouseCursor.default : MouseCursor.pointer;
-        clicked => {
-            if !root.missing {
-                root.add-tape();
+        TouchArea {
+            height: 260px;
+            mouse-cursor: root.missing ? MouseCursor.default : MouseCursor.pointer;
+            clicked => {
+                if !root.missing {
+                    root.add-tape();
+                }
+            }
+
+            Image {
+                width: 320px;
+                height: 243px;
+                source: @image-url("../../assets/add-tape.svg");
             }
         }
-
-        Image {
-            width: 320px;
-            height: 243px;
-            source: @image-url("../../assets/add-tape.svg");
+        Text {
+            text: root.missing ? "tapes-v2 not installed" : "add a tape";
+            horizontal-alignment: center;
+            font-size: 24px;
+            color: Theme.text;
         }
-    }
-    Text {
-        text: root.missing ? "tapes-v2 not installed" : "add a tape";
-        horizontal-alignment: center;
-        font-size: 24px;
-        color: Theme.text;
-    }
-    if !root.missing: Text {
-        text: "no tapes yet";
-        horizontal-alignment: center;
-        font-size: 14px;
-        color: Theme.text-muted;
-    }
-    if root.missing: link := TouchArea {
-        height: 24px;
-        mouse-cursor: pointer;
-        clicked => { root.open-tapes-page(); }
-
-        label := Text {
-            width: parent.width;
-            text: "github.com/futurekismo-oss/tapes-v2";
+        if !root.missing: Text {
+            text: "no tapes yet";
             horizontal-alignment: center;
             font-size: 14px;
-            color: link.has-hover ? Theme.text : Theme.text-muted;
+            color: Theme.text-muted;
         }
+        if root.missing: link := TouchArea {
+            height: 24px;
+            mouse-cursor: pointer;
+            clicked => { root.open-tapes-page(); }
 
-        Rectangle {
-            y: label.preferred-height + 1px;
-            x: (parent.width - self.width) / 2;
-            width: label.preferred-width;
-            height: 1px;
-            background: label.color;
+            label := Text {
+                width: parent.width;
+                text: "github.com/futurekismo-oss/tapes-v2";
+                horizontal-alignment: center;
+                font-size: 14px;
+                color: link.has-hover ? Theme.text : Theme.text-muted;
+            }
+
+            Rectangle {
+                y: label.preferred-height + 1px;
+                x: (parent.width - self.width) / 2;
+                width: label.preferred-width;
+                height: 1px;
+                background: label.color;
+            }
         }
     }
 }

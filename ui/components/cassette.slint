@@ -227,17 +227,26 @@ export component Cassette inherits Rectangle {
 
     property <angle> spin;
     property <float> phase;
+    // Eases the reels up to speed and back down instead of starting and stopping dead.
+    property <float> speed: root.playing ? 1 : 0;
 
     width: 400px;
     height: 256px;
 
+    animate speed {
+        duration: root.playing ? 450ms : 700ms;
+        easing: ease-out;
+    }
+
     Timer {
         interval: 16ms;
-        running: root.playing;
+        running: root.playing || root.speed > 0.005;
         triggered => {
-            root.spin += 4deg;
-            root.phase += 1.1;
-            root.progress = Math.min(1, root.progress + 0.0005);
+            root.spin += 4deg * root.speed;
+            root.phase += 1.1 * root.speed;
+            if root.playing {
+                root.progress = Math.min(1, root.progress + 0.0005);
+            }
         }
     }
 

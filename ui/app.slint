@@ -25,19 +25,26 @@ export component AppWindow inherits Window {
     callback install(string, string, string, string);
 
     property <int> open-tape: -1;
+    property <bool> viewing;
+
+    property <bool> show-tape: !root.adding && root.viewing && root.open-tape < root.tapes.length;
+    property <bool> show-empty: !root.adding && root.tapes.length == 0;
+    property <bool> show-library: !root.adding && !root.show-tape && root.tapes.length > 0;
 
     title: "tapesgui";
     preferred-width: 1100px;
     preferred-height: 700px;
     background: Theme.background;
 
-    if root.tapes.length == 0 && !root.adding: EmptyView {
+    EmptyView {
+        shown: root.show-empty;
         missing: root.missing;
         add-tape => { root.adding = true; }
         open-tapes-page => { root.open-tapes-page(); }
     }
 
-    if root.tapes.length > 0 && root.open-tape < 0 && !root.adding: LibraryView {
+    LibraryView {
+        shown: root.show-library;
         tapes: root.tapes;
         active: root.active;
         insert-hooks: root.active-insert-hooks;
@@ -46,19 +53,24 @@ export component AppWindow inherits Window {
         busy: root.busy;
         status: root.status;
         output: root.output;
-        open-tape(i) => { root.open-tape = i; }
+        open-tape(i) => {
+            root.open-tape = i;
+            root.viewing = true;
+        }
         add-tape => { root.adding = true; }
         eject => { root.eject(); }
         insert(i) => { root.insert(i); }
     }
 
-    if root.open-tape >= 0 && root.open-tape < root.tapes.length: TapeView {
+    TapeView {
+        shown: root.show-tape;
         tape: root.tapes[root.open-tape];
         marker: Theme.marker(root.open-tape);
-        back => { root.open-tape = -1; }
+        back => { root.viewing = false; }
     }
 
-    if root.adding: InstallView {
+    InstallView {
+        shown: root.adding;
         busy: root.busy;
         status: root.status;
         back => { root.adding = false; }

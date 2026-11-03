@@ -7,20 +7,29 @@ export component Button inherits TouchArea {
     height: 42px;
     mouse-cursor: root.enabled ? MouseCursor.pointer : MouseCursor.default;
     opacity: root.enabled ? 1 : 0.45;
+    animate opacity { duration: 150ms; }
 
     Rectangle {
-        border-radius: self.height / 2;
-        border-width: 1.5px;
-        border-color: root.has-hover && root.enabled ? Theme.text : Theme.text-muted;
-        background: root.pressed ? Theme.text.with-alpha(0.08) : transparent;
-    }
-
-    Text {
         width: parent.width;
-        horizontal-alignment: center;
-        text: root.text;
-        font-family: Theme.font-hand;
-        font-size: root.font-size;
-        color: Theme.text;
+        height: parent.height;
+        transform-scale: root.pressed && root.enabled ? 0.96 : 1;
+        animate transform-scale { duration: 90ms; easing: ease-out; }
+
+        Rectangle {
+            border-radius: self.height / 2;
+            border-width: 1.5px;
+            border-color: root.has-hover && root.enabled ? Theme.text : Theme.text-muted;
+            background: root.pressed ? Theme.text.with-alpha(0.08) : root.has-hover && root.enabled ? Theme.text.with-alpha(0.04) : transparent;
+            animate border-color, background { duration: 120ms; }
+        }
+
+        Text {
+            width: parent.width;
+            horizontal-alignment: center;
+            text: root.text;
+            font-family: Theme.font-hand;
+            font-size: root.font-size;
+            color: Theme.text;
+        }
     }
 }

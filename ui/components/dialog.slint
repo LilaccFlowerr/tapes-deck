@@ -1,0 +1,43 @@
+import { Theme } from "../theme.slint";
+
+// A modal card over a dimmed scrim. It stays alive and fades and pops as `open` changes.
+export component Dialog inherits Rectangle {
+    in property <bool> open;
+    in property <length> card-width: 440px;
+    in property <length> card-height: 250px;
+    in property <color> accent: Theme.text-muted.with-alpha(0.4);
+
+    callback dismissed();
+
+    background: #000000a0;
+    visible: root.opacity > 0.01;
+    opacity: root.open ? 1 : 0;
+    animate opacity { duration: 160ms; easing: ease-out; }
+
+    TouchArea {
+        clicked => { root.dismissed(); }
+    }
+
+    Rectangle {
+        width: Math.min(root.card-width, root.width - 48px);
+        height: Math.min(root.card-height, root.height - 48px);
+        background: Theme.sheet;
+        border-radius: 12px;
+        border-width: 1.5px;
+        border-color: root.accent;
+        transform-scale: root.open ? 1 : 0.92;
+        animate transform-scale {
+            duration: root.open ? 280ms : 140ms;
+            easing: root.open ? cubic-bezier(0.34, 1.56, 0.64, 1) : ease-in;
+        }
+
+        TouchArea { }
+
+        VerticalLayout {
+            padding: 28px;
+            spacing: 12px;
+
+            @children
+        }
+    }
+}

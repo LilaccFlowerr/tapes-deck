@@ -1,0 +1,40 @@
+import { Player } from "player.slint";
+
+export component PlayerBox inherits Rectangle {
+    in property <float> scale;
+    in property <bool> loaded;
+    in property <string> name;
+    in property <string> subtitle;
+    in property <string> side;
+    in property <color> marker;
+    in property <bool> busy;
+    in property <bool> show-eject: true;
+    in property <bool> ejecting;
+    in property <bool> live: true;
+
+    callback eject();
+
+    width: 520px * root.scale;
+    height: 442px * root.scale;
+
+    Rectangle {
+        x: 260px * (root.scale - 1);
+        y: 221px * (root.scale - 1);
+        width: 520px;
+        height: 442px;
+        transform-scale: root.scale;
+
+        Player {
+            loaded: root.loaded;
+            name: root.name;
+            subtitle: root.subtitle;
+            side: root.side;
+            marker: root.marker;
+            playing: root.live;
+            busy: root.busy;
+            show-eject: root.show-eject;
+            handoff: root.ejecting;
+            eject => { root.eject(); }
+        }
+    }
+}

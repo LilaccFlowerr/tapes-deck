@@ -1,0 +1,55 @@
+import { Theme } from "../theme.slint";
+import { Sketch } from "sketch-paths.slint";
+
+component Signal inherits Rectangle {
+    in property <float> phase;
+    in property <color> line-color;
+
+    height: 80px;
+    clip: true;
+
+    Path {
+        x: -84px - Math.mod(root.phase * 2, 84) * 1px;
+        y: -4px;
+        width: 3108px;
+        height: 80px;
+        viewbox-width: 3108;
+        viewbox-height: 80;
+        stroke: root.line-color;
+        stroke-width: 2.5px;
+        commands: Sketch.signal-big;
+    }
+
+    Path {
+        x: -84px - Math.mod(root.phase * 1.2 + 42, 84) * 1px;
+        y: 6px;
+        width: 3108px;
+        height: 80px;
+        viewbox-width: 3108;
+        viewbox-height: 80;
+        stroke: Theme.text.with-alpha(0.3);
+        stroke-width: 2px;
+        commands: Sketch.signal-small;
+    }
+}
+
+export component SignalBox inherits Rectangle {
+    in property <bool> playing;
+    in property <float> phase;
+    in property <color> line-color;
+
+    height: 48px;
+
+    if root.playing: Signal {
+        y: (parent.height - self.height) / 2;
+        width: parent.width;
+        phase: root.phase;
+        line-color: root.line-color;
+    }
+
+    if !root.playing: Rectangle {
+        y: parent.height / 2;
+        height: 1.5px;
+        background: Theme.text-muted.with-alpha(0.4);
+    }
+}
