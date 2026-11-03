@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=tapesgui
+Name=tapes-deck
 Comment=Insert, eject and install tapes (dotfile setups)
-Exec=tapesgui
-Icon=tapesgui
+Exec=tapes-deck
+Icon=tapes-deck
 Categories=Utility;Settings;
 Terminal=false

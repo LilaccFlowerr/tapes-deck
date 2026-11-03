@@ -1,5 +1,5 @@
 # Maintainer: LilaccFlowerr
-pkgname=tapesgui-bin
+pkgname=tapes-deck-bin
 pkgver=0.1.0
 pkgrel=1
 pkgdesc='Desktop GUI for tapes-v2, the per-target dotfile switcher'
@@ -7,17 +7,17 @@ arch=('x86_64')
 url='https://github.com/LilaccFlowerr/tapes-deck'
 license=('GPL-3.0-only')
 depends=('fontconfig')
-optdepends=('tapes-v2: the tool tapesgui drives')
-provides=('tapesgui')
-conflicts=('tapesgui')
-source=("tapesgui-$pkgver::$url/releases/download/v$pkgver/tapesgui-x86_64-unknown-linux-gnu"
+optdepends=('tapes-v2: the tool tapes-deck drives')
+provides=('tapes-deck')
+conflicts=('tapes-deck')
+source=("tapes-deck-$pkgver::$url/releases/download/v$pkgver/tapes-deck-x86_64-unknown-linux-gnu"
         "tapes-deck-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('SKIP' 'SKIP') # run `updpkgsums` before publishing
 
 package() {
-  install -Dm755 "tapesgui-$pkgver" "$pkgdir/usr/bin/tapesgui"
+  install -Dm755 "tapes-deck-$pkgver" "$pkgdir/usr/bin/tapes-deck"
   cd "tapes-deck-$pkgver"
-  install -Dm644 packaging/tapesgui.desktop "$pkgdir/usr/share/applications/tapesgui.desktop"
-  install -Dm644 assets/add-tape.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/tapesgui.svg"
+  install -Dm644 packaging/tapes-deck.desktop "$pkgdir/usr/share/applications/tapes-deck.desktop"
+  install -Dm644 assets/add-tape.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/tapes-deck.svg"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }

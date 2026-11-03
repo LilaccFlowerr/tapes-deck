@@ -1,5 +1,5 @@
 #!/bin/sh
-# Installs the latest tapesgui release into ~/.local/bin, plus an app-launcher entry.
+# Installs the latest tapes-deck release into ~/.local/bin, plus an app-launcher entry.
 #   curl -fsSL https://raw.githubusercontent.com/LilaccFlowerr/tapes-deck/main/install.sh | sh
 set -eu
 
@@ -8,7 +8,7 @@ BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}"
 
 if [ "$(uname -s)" != "Linux" ] || [ "$(uname -m)" != "x86_64" ]; then
-  echo "tapesgui only has Linux x86_64 builds." >&2
+  echo "tapes-deck only has Linux x86_64 builds." >&2
   exit 1
 fi
 
@@ -25,17 +25,17 @@ fetch() { # url dest
 
 mkdir -p "$BIN_DIR" "$DATA_DIR/applications" "$DATA_DIR/icons/hicolor/scalable/apps"
 
-echo "Downloading tapesgui..."
+echo "Downloading tapes-deck..."
 tmp="$(mktemp)"
 trap 'rm -f "$tmp"' EXIT
-fetch "https://github.com/$REPO/releases/latest/download/tapesgui-x86_64-unknown-linux-gnu" "$tmp"
-install -m755 "$tmp" "$BIN_DIR/tapesgui"
+fetch "https://github.com/$REPO/releases/latest/download/tapes-deck-x86_64-unknown-linux-gnu" "$tmp"
+install -m755 "$tmp" "$BIN_DIR/tapes-deck"
 
 raw="https://raw.githubusercontent.com/$REPO/main"
-fetch "$raw/assets/add-tape.svg" "$DATA_DIR/icons/hicolor/scalable/apps/tapesgui.svg"
-fetch "$raw/packaging/tapesgui.desktop" "$DATA_DIR/applications/tapesgui.desktop"
+fetch "$raw/assets/add-tape.svg" "$DATA_DIR/icons/hicolor/scalable/apps/tapes-deck.svg"
+fetch "$raw/packaging/tapes-deck.desktop" "$DATA_DIR/applications/tapes-deck.desktop"
 
-echo "Installed to $BIN_DIR/tapesgui"
+echo "Installed to $BIN_DIR/tapes-deck"
 case ":$PATH:" in
   *":$BIN_DIR:"*) ;;
   *) echo "Note: $BIN_DIR is not in your \$PATH. Add this to your shell config:"

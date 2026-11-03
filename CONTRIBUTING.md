@@ -1,6 +1,6 @@
-# Contributing to tapesgui
+# Contributing to tapes-deck
 
-Thanks for wanting to help. tapesgui is a small project, so the rules are short.
+Thanks for wanting to help. tapes-deck is a small project, so the rules are short.
 
 Not sure where to start? Ask in the [Discord](https://discord.gg/TVjsGzFAur) or look at the
 [roadmap](README.md#roadmap). For anything bigger than a small fix, open an issue or ask
@@ -11,7 +11,7 @@ first, so you don't spend time on something that doesn't fit.
 Use [GitHub Issues](https://github.com/LilaccFlowerr/tapes-deck/issues/new). For a bug, include:
 
 - what you did, what you expected and what happened instead
-- your distro and how you installed tapesgui (install script, AppImage, built from source)
+- your distro and how you installed tapes-deck (install script, AppImage, built from source)
 - your `tapes-v2 --version`
 - the text from the output view in the app, if there is any
 
@@ -68,7 +68,7 @@ docs: explain the install script
 ## Project layout
 
 ```
-tapesgui/
+tapes-deck/
 ├── build.rs          compiles ui/app.slint
 ├── assets/           images, icons and fonts
 ├── packaging/        .desktop file and the PKGBUILD for Arch
@@ -130,5 +130,5 @@ the binary, the `.tgz` and the AppImage and publishes them as a GitHub release.
 
 ## License
 
-tapesgui is GPL-3.0. By contributing you agree that your contribution is licensed under the
+tapes-deck is GPL-3.0. By contributing you agree that your contribution is licensed under the
 same terms (see [LICENSE](LICENSE)).

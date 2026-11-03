@@ -4279,7 +4279,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tapesgui"
+name = "tapes-deck"
 version = "0.1.0"
 dependencies = [
  "slint",

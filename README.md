@@ -1,9 +1,9 @@
 <br />
 <div align="center">
 
-<h1 align="center">tapesgui</h1>
+<h1 align="center">tapes-deck</h1>
 
-<!-- TODO: logo, e.g. <img src="assets/icon.svg" alt="tapesgui logo" width="200"> -->
+<!-- TODO: logo, e.g. <img src="assets/icon.svg" alt="tapes-deck logo" width="200"> -->
 
 The GUI to make ricing easier.
 Browse your dotfile setups, switch between them with a click and install new ones from a git repo.
@@ -25,14 +25,14 @@ A desktop app for [tapes-v2](https://github.com/futurekismo-oss/tapes-v2).
 ---
 
 <div align="center">
-  <img src="media/screenshot.png" alt="tapesgui showing a shelf of tapes and the inserted tape" width="800">
+  <img src="media/screenshot.png" alt="tapes-deck showing a shelf of tapes and the inserted tape" width="800">
 </div>
 
 ## What is this?
 
 [tapes-v2](https://github.com/futurekismo-oss/tapes-v2) is a dotfile switcher: a *tape* is a
 complete setup (a rice) that lives in `~/.tapes`, and you swap your whole config by inserting
-one and get your old one back by ejecting it. tapesgui is the same thing without the terminal.
+one and get your old one back by ejecting it. tapes-deck is the same thing without the terminal.
 
 - See all your tapes in one place, with their description, hooks and targets
 - Insert a tape and eject it again with a click
@@ -44,14 +44,14 @@ So everything you do in the app works the same in the terminal, and the other wa
 
 ## Quickstart
 
-1. Install [tapes-v2](https://github.com/futurekismo-oss/tapes-v2) and tapesgui (see below).
-2. Run `tapesgui`. If tapes-v2 can't be found, the app says so and links you to it.
+1. Install [tapes-v2](https://github.com/futurekismo-oss/tapes-v2) and tapes-deck (see below).
+2. Run `tapes-deck`. If tapes-v2 can't be found, the app says so and links you to it.
 3. Add a tape: install one from a repo, or put one in `~/.tapes` yourself.
 4. Insert it to try it out. Eject it to go back to your old config.
 
 ## Installation
 
-tapesgui needs [tapes-v2](https://github.com/futurekismo-oss/tapes-v2). Use the latest release
+tapes-deck needs [tapes-v2](https://github.com/futurekismo-oss/tapes-v2). Use the latest release
 of it. It only runs on Linux (x86_64).
 
 **Install script** (grabs the latest release, installs to `~/.local/bin` and adds an
@@ -63,7 +63,7 @@ curl -fsSL https://raw.githubusercontent.com/LilaccFlowerr/tapes-deck/main/insta
 
 Make sure `~/.local/bin` is in your `$PATH`; the script tells you if it isn't.
 
-**AppImage**: download `tapesgui-x86_64.AppImage` from the
+**AppImage**: download `tapes-deck-x86_64.AppImage` from the
 [releases page](https://github.com/LilaccFlowerr/tapes-deck/releases), `chmod +x` it and run it.
 No install needed.
 
@@ -75,7 +75,7 @@ cd tapes-deck/packaging/aur
 makepkg -si
 ```
 
-Remove it later with `sudo pacman -R tapesgui-bin`.
+Remove it later with `sudo pacman -R tapes-deck-bin`.
 
 **From source**
 
@@ -87,17 +87,17 @@ cargo run --release
 
 You need Rust, `pkg-config` and the fontconfig development files.
 
-The releases page also has the plain `tapesgui-x86_64-unknown-linux-gnu` binary and a `.tgz`.
-tapesgui needs `fontconfig` at runtime, which almost every desktop already has.
+The releases page also has the plain `tapes-deck-x86_64-unknown-linux-gnu` binary and a `.tgz`.
+tapes-deck needs `fontconfig` at runtime, which almost every desktop already has.
 
 ### Uninstalling
 
 If you used the install script:
 
 ```bash
-rm ~/.local/bin/tapesgui \
-   ~/.local/share/applications/tapesgui.desktop \
-   ~/.local/share/icons/hicolor/scalable/apps/tapesgui.svg
+rm ~/.local/bin/tapes-deck \
+   ~/.local/share/applications/tapes-deck.desktop \
+   ~/.local/share/icons/hicolor/scalable/apps/tapes-deck.svg
 ```
 
 An AppImage is just a file; delete it.
@@ -108,7 +108,7 @@ An AppImage is just a file; delete it.
 
 Ideas for what comes next, roughly in order:
 
-- [ ] **Auto-install tapes-v2**: tapesgui installs tapes-v2 for you if it's missing
+- [ ] **Auto-install tapes-v2**: tapes-deck installs tapes-v2 for you if it's missing
 - [ ] **Inline `tape.toml` editor**: edit a tape's config inside the app
 - [ ] **Inline targets editor**: manage the (fake) `.config` targets of a tape without leaving the app
 - [ ] **Starter tape**: a preconfigured tape that doubles as a tutorial. It installs itself, then
@@ -126,7 +126,7 @@ Built with Rust and [Slint](https://slint.dev). The handwriting font is
 [Caveat](https://fonts.google.com/specimen/Caveat) (SIL Open Font License). The cassette drawing
 is public domain, from Openclipart.
 
-tapesgui is a separate project from tapes-v2. The author of tapes-v2 knows about it and sees it
+tapes-deck is a separate project from tapes-v2. The author of tapes-v2 knows about it and sees it
 as a fitting companion.
 
 ## License

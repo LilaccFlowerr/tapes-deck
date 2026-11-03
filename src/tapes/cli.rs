@@ -37,7 +37,7 @@ where
     // reading the output would wait until those daemons exit, so capture into a file instead.
     static COUNTER: AtomicUsize = AtomicUsize::new(0);
     let id = COUNTER.fetch_add(1, Ordering::Relaxed);
-    let path = std::env::temp_dir().join(format!("tapesgui-{}-{id}.out", std::process::id()));
+    let path = std::env::temp_dir().join(format!("tapes-deck-{}-{id}.out", std::process::id()));
     let result = std::fs::File::create(&path).and_then(|file| {
         Command::new(bin())
             .args(args)
