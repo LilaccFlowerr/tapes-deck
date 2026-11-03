@@ -1,9 +1,9 @@
 #!/bin/sh
 # Installs the latest tapesgui release into ~/.local/bin, plus an app-launcher entry.
-#   curl -fsSL https://raw.githubusercontent.com/LilaccFlowerr/tapes-gui/main/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/LilaccFlowerr/tapes-deck/main/install.sh | sh
 set -eu
 
-REPO="LilaccFlowerr/tapes-gui"
+REPO="LilaccFlowerr/tapes-deck"
 BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}"
 

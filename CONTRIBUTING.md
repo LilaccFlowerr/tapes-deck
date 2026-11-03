@@ -8,7 +8,7 @@ first, so you don't spend time on something that doesn't fit.
 
 ## Reporting bugs and requesting features
 
-Use [GitHub Issues](https://github.com/LilaccFlowerr/tapes-gui/issues/new). For a bug, include:
+Use [GitHub Issues](https://github.com/LilaccFlowerr/tapes-deck/issues/new). For a bug, include:
 
 - what you did, what you expected and what happened instead
 - your distro and how you installed tapesgui (install script, AppImage, built from source)
@@ -38,8 +38,8 @@ development files (`libfontconfig1-dev` on Debian/Ubuntu, `fontconfig` on Arch).
 `~/.local/bin`.
 
 ```
-git clone https://github.com/LilaccFlowerr/tapes-gui
-cd tapes-gui
+git clone https://github.com/LilaccFlowerr/tapes-deck
+cd tapes-deck
 cargo run
 ```
 
