@@ -1,0 +1,197 @@
+import { Theme } from "../theme.slint";
+import { Button } from "button.slint";
+import { Panel } from "panel.slint";
+import { TapeInfo } from "../types.slint";
+import { HookList } from "hook-list.slint";
+import { PlayerBox } from "player-box.slint";
+import { SignalBox } from "signal.slint";
+
+export component DeckPanel inherits Panel {
+    in property <[TapeInfo]> tapes;
+    in property <int> active: -1;
+    in property <float> phase;
+    in property <[string]> insert-hooks;
+    in property <[string]> eject-hooks;
+    in property <[string]> targets;
+    in property <bool> compact;
+    in property <bool> busy;
+    in property <string> status;
+    in property <bool> drop-hint;
+    in property <bool> ejecting;
+    in property <bool> live: true;
+
+    callback eject();
+
+    border-color: root.drop-hint ? Theme.text : Theme.text-muted.with-alpha(0.2);
+    border-width: root.drop-hint ? 2px : 1px;
+    animate border-color, border-width { duration: 140ms; easing: ease-out; }
+
+    property <bool> has-tape: root.active >= 0 && root.active < root.tapes.length;
+    property <string> name: root.has-tape ? root.tapes[root.active].name : "nothing inserted";
+    property <string> source: root.has-tape ? root.tapes[root.active].source : "pick a tape on the right";
+
+    if !root.compact: VerticalLayout {
+        padding: 24px;
+        spacing: 12px;
+
+        PlayerBox {
+            scale: (parent.width - 48px) / 520px;
+            loaded: root.has-tape;
+            name: root.has-tape ? root.name : "";
+            subtitle: root.has-tape ? root.source : "";
+            side: Math.mod(root.active, 2) == 0 ? "A" : "B";
+            marker: Theme.marker(root.active);
+            busy: root.busy;
+            ejecting: root.ejecting;
+            live: root.live;
+            eject => { root.eject(); }
+        }
+
+        SignalBox {
+            playing: root.has-tape;
+            phase: root.phase;
+            line-color: Theme.marker(root.active);
+        }
+
+        Text {
+            text: root.name;
+            font-family: Theme.font-hand;
+            font-size: 30px;
+            font-weight: 700;
+            color: root.has-tape ? Theme.text : Theme.text-muted;
+            overflow: elide;
+        }
+
+        Text {
+            text: root.source;
+            font-family: Theme.font-hand;
+            font-size: 17px;
+            color: Theme.text-muted;
+            overflow: elide;
+        }
+
+        if root.status != "": Text {
+            text: root.status;
+            font-family: Theme.font-hand;
+            font-size: 17px;
+            color: #e86f8a;
+            wrap: word-wrap;
+        }
+
+        if root.has-tape: VerticalLayout {
+            spacing: 14px;
+            padding-top: 8px;
+
+            HookList {
+                title: "on insert";
+                hooks: root.insert-hooks;
+            }
+
+            HookList {
+                title: "on eject";
+                hooks: root.eject-hooks;
+            }
+
+            Text {
+                text: "touches " + root.targets.length + " configs";
+                font-family: Theme.font-hand;
+                font-size: 18px;
+                color: Theme.text-muted;
+            }
+        }
+
+        targets := Flickable {
+            vertical-stretch: 1;
+            visible: root.has-tape;
+            content-height: Math.ceil(root.targets.length / 2) * 20px;
+
+            for target[k] in root.targets: Text {
+                x: Math.mod(k, 2) * targets.width / 2;
+                y: Math.floor(k / 2) * 20px;
+                width: targets.width / 2 - 8px;
+                text: target;
+                font-family: "JetBrains Mono";
+                font-size: 12px;
+                color: Theme.text.with-alpha(0.7);
+                overflow: elide;
+            }
+        }
+    }
+
+    if root.compact: HorizontalLayout {
+        padding: 20px;
+        spacing: 24px;
+
+        PlayerBox {
+            scale: (parent.height - 40px) / 442px;
+            show-eject: false;
+            loaded: root.has-tape;
+            name: root.has-tape ? root.name : "";
+            subtitle: root.has-tape ? root.source : "";
+            side: Math.mod(root.active, 2) == 0 ? "A" : "B";
+            marker: Theme.marker(root.active);
+            busy: root.busy;
+            ejecting: root.ejecting;
+            live: root.live;
+            eject => { root.eject(); }
+        }
+
+        VerticalLayout {
+            alignment: center;
+            spacing: 4px;
+
+            Text {
+                text: root.name;
+                font-family: Theme.font-hand;
+                font-size: 30px;
+                font-weight: 700;
+                color: root.has-tape ? Theme.text : Theme.text-muted;
+                overflow: elide;
+            }
+
+            Text {
+                text: root.source;
+                font-family: Theme.font-hand;
+                font-size: 17px;
+                color: Theme.text-muted;
+                overflow: elide;
+            }
+
+            if root.status != "": Text {
+                text: root.status;
+                font-family: Theme.font-hand;
+                font-size: 17px;
+                color: #e86f8a;
+                wrap: word-wrap;
+            }
+
+            SignalBox {
+                playing: root.has-tape;
+                phase: root.phase;
+                line-color: Theme.marker(root.active);
+            }
+
+            HorizontalLayout {
+                spacing: 16px;
+                alignment: start;
+
+                if root.has-tape: Button {
+                    width: 120px;
+                    height: 36px;
+                    font-size: 19px;
+                    text: root.busy ? "busy…" : "⏏  eject";
+                    enabled: !root.busy;
+                    clicked => { root.eject(); }
+                }
+
+                if root.has-tape: Text {
+                    text: root.insert-hooks.length + " hooks on insert · touches " + root.targets.length + " configs";
+                    font-family: Theme.font-hand;
+                    font-size: 17px;
+                    color: Theme.text-muted;
+                    vertical-alignment: center;
+                }
+            }
+        }
+    }
+}

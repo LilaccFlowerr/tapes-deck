@@ -1,0 +1,53 @@
+import { Theme } from "../theme.slint";
+import { Button } from "button.slint";
+import { Dialog } from "dialog.slint";
+
+export component SwapDialog inherits Dialog {
+    in property <string> from-name;
+    in property <string> to-name;
+    in property <int> eject-hooks;
+
+    callback confirmed();
+
+    Text {
+        text: "swap tapes?";
+        font-family: Theme.font-hand;
+        font-size: 34px;
+        font-weight: 700;
+        color: Theme.text;
+    }
+
+    Text {
+        text: root.from-name + " gets ejected first";
+        font-family: Theme.font-hand;
+        font-size: 22px;
+        color: Theme.text;
+        wrap: word-wrap;
+    }
+
+    Text {
+        text: "then " + root.to-name + " goes in"
+            + (root.eject-hooks > 0 ? " · " + root.eject-hooks + " eject hooks run" : "");
+        font-family: Theme.font-hand;
+        font-size: 19px;
+        color: Theme.text-muted;
+        wrap: word-wrap;
+    }
+
+    HorizontalLayout {
+        alignment: end;
+        spacing: 16px;
+
+        Button {
+            width: 110px;
+            text: "cancel";
+            clicked => { root.dismissed(); }
+        }
+
+        Button {
+            width: 130px;
+            text: "swap";
+            clicked => { root.confirmed(); }
+        }
+    }
+}

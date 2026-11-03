@@ -1,0 +1,123 @@
+import { Theme } from "../theme.slint";
+import { Cassette } from "cassette.slint";
+import { TapeInfo } from "../types.slint";
+
+export component TapeGrid inherits Rectangle {
+    in property <[TapeInfo]> tapes;
+    in property <int> active: -1;
+    in property <int> lifted: -1;
+
+    // The ejected tape flies from the bay (given in absolute coordinates) to its slot.
+    in property <bool> ejecting;
+    in property <int> fly-index: -1;
+    in property <length> bay-x;
+    in property <length> bay-y;
+    in property <float> bay-scale;
+
+    callback grab(int, length, length, length, length);
+    callback drag(length, length);
+    callback drop();
+
+    property <float> card-size: 0.6;
+    property <length> card-width: 400px * root.card-size;
+    property <length> card-height: 256px * root.card-size;
+    property <length> gap: 28px;
+
+    VerticalLayout {
+    spacing: 16px;
+
+    HorizontalLayout {
+        spacing: 10px;
+        alignment: start;
+
+        Text {
+            text: "my tapes";
+            font-family: Theme.font-hand;
+            font-size: 32px;
+            font-weight: 700;
+            color: Theme.text;
+        }
+
+        Text {
+            text: "(" + root.tapes.length + ")";
+            font-family: Theme.font-hand;
+            font-size: 22px;
+            color: Theme.text-muted;
+            vertical-alignment: center;
+        }
+    }
+
+    grid := Flickable {
+        mouse-drag-pan-enabled: false;
+
+        property <int> columns: Math.max(1, Math.floor((self.width + root.gap) / (root.card-width + root.gap)));
+
+        content-height: Math.ceil(root.tapes.length / self.columns) * (root.card-height + root.gap) + 12px;
+
+        for tape[i] in root.tapes: Rectangle {
+            x: Math.mod(i, grid.columns) * (root.card-width + root.gap);
+            y: 12px + Math.floor(i / grid.columns) * (root.card-height + root.gap) - (touch.has-hover ? 6px : 0);
+            width: root.card-width;
+            height: root.card-height;
+            animate y { duration: 150ms; easing: ease-out; }
+
+            // The card is swapped for the flying ghost (and back) instantly, so a tape that lands
+            // doesn't look like it fades in. Only the dimming of the inserted tape is eased.
+            Cassette {
+                visible: i != root.lifted;
+                opacity: i == root.active ? 0.35 : 1;
+                transform-scale: root.card-size;
+                name: tape.name;
+                subtitle: tape.source;
+                side: Math.mod(i, 2) == 0 ? "A" : "B";
+                marker: Theme.marker(i);
+            }
+
+            touch := TouchArea {
+                mouse-cursor: root.lifted >= 0 ? MouseCursor.grabbing : MouseCursor.grab;
+                pointer-event(event) => {
+                    if event.kind == PointerEventKind.down && event.button == PointerEventButton.left {
+                        root.grab(i,
+                            self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y,
+                            self.absolute-position.x + self.width / 2, self.absolute-position.y + self.height / 2);
+                    } else if event.kind == PointerEventKind.up {
+                        root.drop();
+                    }
+                }
+                moved => {
+                    root.drag(self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y);
+                }
+            }
+        }
+    }
+    }
+
+    // The ejected tape flies from the bay to its slot in an arc, with a little overshoot on landing.
+    Rectangle {
+        property <float> t: root.ejecting ? 1 : 0;
+        property <float> arc: 4 * self.t * (1 - self.t);
+        property <length> seat-x: root.bay-x - root.absolute-position.x;
+        property <length> seat-y: root.bay-y - root.absolute-position.y;
+        property <length> slot-x: grid.x + grid.content-x + (Math.mod(root.fly-index, grid.columns) + 0.5) * root.card-width + Math.mod(root.fly-index, grid.columns) * root.gap;
+        property <length> slot-y: grid.y + grid.content-y + 12px + (Math.floor(root.fly-index / grid.columns) + 0.5) * root.card-height + Math.floor(root.fly-index / grid.columns) * root.gap;
+
+        x: self.seat-x + (self.slot-x - self.seat-x) * self.t - 200px;
+        y: self.seat-y + (self.slot-y - self.seat-y) * self.t - 70px * self.arc - 128px;
+        width: 400px;
+        height: 256px;
+        visible: root.ejecting;
+        transform-scale: root.bay-scale + (root.card-size - root.bay-scale) * self.t + 0.1 * self.arc;
+        transform-rotation: -6deg * self.arc;
+        animate t {
+            duration: root.ejecting ? 600ms : 0ms;
+            easing: cubic-bezier(0.3, 0.7, 0.3, 1.2);
+        }
+
+        if root.fly-index >= 0 && root.fly-index < root.tapes.length: Cassette {
+            name: root.tapes[root.fly-index].name;
+            subtitle: root.tapes[root.fly-index].source;
+            side: Math.mod(root.fly-index, 2) == 0 ? "A" : "B";
+            marker: Theme.marker(root.fly-index);
+        }
+    }
+}

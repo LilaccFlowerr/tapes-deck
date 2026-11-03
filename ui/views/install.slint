@@ -2,8 +2,9 @@ import { Theme } from "../theme.slint";
 import { Button } from "../components/button.slint";
 import { Field } from "../components/field.slint";
 import { Panel } from "../components/panel.slint";
+import { View } from "../components/view.slint";
 
-export component InstallView inherits Rectangle {
+export component InstallView inherits View {
     in property <bool> busy;
     in property <string> status;
 
@@ -12,6 +13,17 @@ export component InstallView inherits Rectangle {
 
     property <bool> tried;
     property <bool> ready: source.text != "" && !root.busy;
+
+    // The page stays alive between visits, so start each visit with a clean form.
+    changed shown => {
+        if root.shown {
+            source.text = "";
+            name.text = "";
+            branch.text = "";
+            dir.text = "";
+            root.tried = false;
+        }
+    }
 
     function submit() {
         if root.ready {

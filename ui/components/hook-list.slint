@@ -1,0 +1,30 @@
+import { Theme } from "../theme.slint";
+
+export component HookList inherits VerticalLayout {
+    in property <string> title;
+    in property <[string]> hooks;
+
+    spacing: 2px;
+
+    Text {
+        text: root.title;
+        font-family: Theme.font-hand;
+        font-size: 18px;
+        color: Theme.text-muted;
+    }
+
+    if root.hooks.length == 0: Text {
+        text: "(none)";
+        font-family: "JetBrains Mono";
+        font-size: 12px;
+        color: Theme.text-muted.with-alpha(0.6);
+    }
+
+    for hook in root.hooks: Text {
+        text: "› " + hook;
+        font-family: "JetBrains Mono";
+        font-size: 12px;
+        color: Theme.text.with-alpha(0.85);
+        overflow: elide;
+    }
+}

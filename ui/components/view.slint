@@ -1,0 +1,9 @@
+// Base for the full-window views. They all stay alive and cross-fade as `shown` changes,
+// so switching never rebuilds a view and the old one fades out while the new one fades in.
+export component View inherits Rectangle {
+    in property <bool> shown;
+
+    visible: root.opacity > 0.01;
+    opacity: root.shown ? 1 : 0;
+    animate opacity { duration: root.shown ? 220ms : 120ms; easing: ease-out; }
+}

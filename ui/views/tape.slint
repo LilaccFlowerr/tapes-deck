@@ -1,7 +1,8 @@
 import { Theme } from "../theme.slint";
 import { TapeInfo } from "../types.slint";
+import { View } from "../components/view.slint";
 
-export component TapeView inherits Rectangle {
+export component TapeView inherits View {
     in property <TapeInfo> tape;
     in property <color> marker;
 
@@ -13,7 +14,7 @@ export component TapeView inherits Rectangle {
         alignment: start;
 
         back-button := TouchArea {
-            width: 90px;
+            min-width: 90px;
             height: 36px;
             mouse-cursor: pointer;
             clicked => { root.back(); }
@@ -37,7 +38,7 @@ export component TapeView inherits Rectangle {
 
         Rectangle {
             height: 4px;
-            width: 160px;
+            min-width: 160px;
             border-radius: 2px;
             background: root.marker;
         }

@@ -4,19 +4,19 @@ pkgver=0.1.0
 pkgrel=1
 pkgdesc='Desktop GUI for tapes-v2, the per-target dotfile switcher'
 arch=('x86_64')
-url='https://github.com/LilaccFlowerr/tapes-gui'
+url='https://github.com/LilaccFlowerr/tapes-deck'
 license=('GPL-3.0-only')
 depends=('fontconfig')
 optdepends=('tapes-v2: the tool tapesgui drives')
 provides=('tapesgui')
 conflicts=('tapesgui')
 source=("tapesgui-$pkgver::$url/releases/download/v$pkgver/tapesgui-x86_64-unknown-linux-gnu"
-        "tapes-gui-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+        "tapes-deck-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('SKIP' 'SKIP') # run `updpkgsums` before publishing
 
 package() {
   install -Dm755 "tapesgui-$pkgver" "$pkgdir/usr/bin/tapesgui"
-  cd "tapes-gui-$pkgver"
+  cd "tapes-deck-$pkgver"
   install -Dm644 packaging/tapesgui.desktop "$pkgdir/usr/share/applications/tapesgui.desktop"
   install -Dm644 assets/add-tape.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/tapesgui.svg"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"

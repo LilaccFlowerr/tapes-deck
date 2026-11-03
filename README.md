@@ -10,9 +10,9 @@ Browse your dotfile setups, switch between them with a click and install new one
 
 A desktop app for [tapes-v2](https://github.com/futurekismo-oss/tapes-v2).
 
-<a href="https://github.com/LilaccFlowerr/tapes-gui/issues/new">Report Bug</a>
+<a href="https://github.com/LilaccFlowerr/tapes-deck/issues/new">Report Bug</a>
 &middot;
-<a href="https://github.com/LilaccFlowerr/tapes-gui/issues/new">Request Feature</a>
+<a href="https://github.com/LilaccFlowerr/tapes-deck/issues/new">Request Feature</a>
 &middot;
 <a href="https://discord.gg/TVjsGzFAur">Join the Discord</a>
 
@@ -20,7 +20,7 @@ A desktop app for [tapes-v2](https://github.com/futurekismo-oss/tapes-v2).
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Rust Edition: 2024](https://img.shields.io/badge/Rust-2024-orange.svg)](Cargo.toml)
-[![Release](https://img.shields.io/github/v/release/LilaccFlowerr/tapes-gui?include_prereleases&color=brightgreen)](https://github.com/LilaccFlowerr/tapes-gui/releases)
+[![Release](https://img.shields.io/github/v/release/LilaccFlowerr/tapes-deck?include_prereleases&color=brightgreen)](https://github.com/LilaccFlowerr/tapes-deck/releases)
 
 ---
 
@@ -58,20 +58,20 @@ of it. It only runs on Linux (x86_64).
 app-launcher entry)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/LilaccFlowerr/tapes-gui/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/LilaccFlowerr/tapes-deck/main/install.sh | sh
 ```
 
 Make sure `~/.local/bin` is in your `$PATH`; the script tells you if it isn't.
 
 **AppImage**: download `tapesgui-x86_64.AppImage` from the
-[releases page](https://github.com/LilaccFlowerr/tapes-gui/releases), `chmod +x` it and run it.
+[releases page](https://github.com/LilaccFlowerr/tapes-deck/releases), `chmod +x` it and run it.
 No install needed.
 
 **Arch Linux**: build and install a pacman package from the `PKGBUILD` in this repo:
 
 ```bash
-git clone https://github.com/LilaccFlowerr/tapes-gui
-cd tapes-gui/packaging/aur
+git clone https://github.com/LilaccFlowerr/tapes-deck
+cd tapes-deck/packaging/aur
 makepkg -si
 ```
 
@@ -80,8 +80,8 @@ Remove it later with `sudo pacman -R tapesgui-bin`.
 **From source**
 
 ```bash
-git clone https://github.com/LilaccFlowerr/tapes-gui
-cd tapes-gui
+git clone https://github.com/LilaccFlowerr/tapes-deck
+cd tapes-deck
 cargo run --release
 ```
 
