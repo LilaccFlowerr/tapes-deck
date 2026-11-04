@@ -3,10 +3,22 @@ use std::time::Duration;
 
 use slint::{ComponentHandle, Model, ModelRc, SharedString, VecModel, Weak};
 
-use crate::{tapes, AppWindow, TapeInfo};
+use crate::{tapes, AppWindow, FeaturedTape, TapeInfo};
 
 pub fn setup(ui: &AppWindow) {
     load_tapes(ui);
+
+    let featured: Vec<FeaturedTape> = tapes::FEATURED
+        .iter()
+        .map(|tape| FeaturedTape {
+            name: tape.name.into(),
+            description: tape.description.into(),
+            source: tape.source.into(),
+            branch: "".into(),
+            dir: tape.dir.into(),
+        })
+        .collect();
+    ui.set_featured(ModelRc::from(Rc::new(VecModel::from(featured))));
 
     ui.on_open_tapes_page(|| {
         let _ = std::process::Command::new("xdg-open")

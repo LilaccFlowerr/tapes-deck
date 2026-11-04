@@ -1,11 +1,14 @@
 mod cli;
+mod featured;
 mod parse;
 mod types;
 
 pub use cli::{download as install_cli, installed, PAGE};
+pub use featured::FEATURED;
+use featured::Featured;
 pub use types::{Details, Options, Output, Tape};
 
-use cli::{run, run_live};
+use cli::{run, run_live, run_script};
 use parse::{parse_active, parse_details, parse_list};
 
 fn with_options(mut args: Vec<String>, options: Options) -> Vec<String> {
@@ -51,12 +54,56 @@ pub fn install(
     dir: Option<&str>,
     progress: impl FnMut(&str, Option<f32>),
 ) -> Output {
+    let (name, branch, dir) = (name.unwrap_or(""), branch.unwrap_or(""), dir.unwrap_or(""));
+    let featured = FEATURED.iter().find(|tape| tape.source == source && tape.dir == dir && branch.is_empty());
+    match featured {
+        Some(tape) => install_featured(tape, name, progress),
+        None => run_live(install_args(source, name, branch, dir, false), progress),
+    }
+}
+
+fn install_args(source: &str, name: &str, branch: &str, dir: &str, no_hooks: bool) -> Vec<String> {
     let mut args = vec!["install".to_string(), source.to_string()];
     for (flag, value) in [("--name", name), ("--branch", branch), ("--dir", dir)] {
-        if let Some(value) = value.filter(|v| !v.is_empty()) {
+        if !value.is_empty() {
             args.push(flag.into());
             args.push(value.into());
         }
     }
-    run_live(args, progress)
+    if no_hooks {
+        args.push("--no-hooks".into());
+    }
+    args
+}
+
+/// Clones the dots, replaces the generated tape.toml with ours and runs the tape's one-time setup.
+fn install_featured(tape: &Featured, name: &str, mut progress: impl FnMut(&str, Option<f32>)) -> Output {
+    let name = if name.is_empty() { tape.name } else { name }.to_lowercase();
+    // The bar covers the clone; the setup that follows only reports lines, which keeps it from jumping back.
+    let steps = if tape.setup.is_some() { 2.0 } else { 1.0 };
+    let mut out = run_live(install_args(tape.source, &name, "", tape.dir, true), |line, fraction| {
+        progress(line, fraction.map(|f| f / steps));
+    });
+    if !out.ok {
+        return out;
+    }
+
+    let Some(folder) = std::env::home_dir().map(|home| home.join(".tapes").join(&name)) else {
+        return Output { ok: false, text: "couldn't find your home folder".into() };
+    };
+    if let Err(e) = std::fs::write(folder.join("tape.toml"), tape.tape_toml.replace("@NAME@", &name)) {
+        return Output { ok: false, text: format!("couldn't write tape.toml: {e}") };
+    }
+
+    if let Some(script) = tape.setup {
+        progress("setting up", Some(1.0 / steps));
+        let setup = run_script(script, &folder, |line, _| progress(line, None));
+        out.text.push('\n');
+        out.text.push_str(&setup.text);
+        if !setup.ok {
+            out.ok = false;
+            out.text.push_str("\nsetup failed: the tape is installed but may not work yet");
+        }
+    }
+    out
 }

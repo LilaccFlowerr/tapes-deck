@@ -1,0 +1,55 @@
+[tape]
+name = "@NAME@"
+desc = "A Hyprland desktop with a Quickshell shell, Material 3 Expressive shapes and colors that follow your wallpaper."
+dependencies = [
+    "hyprland",
+    "hypridle",
+    "hyprlock",
+    "quickshell",
+    "matugen",
+    "xdg-desktop-portal-hyprland",
+    "ghostty",
+    "firefox",
+    "nautilus",
+    "fuzzel",
+    "cliphist",
+    "wl-clipboard",
+    "grim",
+    "slurp",
+    "mate-polkit",
+    "playerctl",
+    "brightnessctl",
+    "cava",
+    "zenity",
+    "libnotify",
+    "ffmpeg",
+    "jq",
+    "pciutils",
+    "fastfetch",
+    "gpu-screen-recorder",
+    "inter-font",
+    "ttf-material-symbols-variable",
+    "ttf-nerd-fonts-symbols",
+    "ttf-jetbrains-mono-nerd",
+    "noto-fonts-emoji",
+    "papirus-icon-theme",
+    "git",
+    "cmake",
+    "ninja",
+    "gcc",
+    "qt6-shadertools",
+]
+
+[hooks]
+# Every hook ends well: tapes-v2 skips the rest of the hooks after one that fails.
+insert = [
+    '''sh -c 'mkdir -p ~/.local/state/tapes-deck && ps -C qs -o args= > ~/.local/state/tapes-deck/previous-shell; true' ''',
+    "hyprctl reload",
+    "pkill -x qs || true",
+    "qs -c nebula -d",
+]
+eject = [
+    "hyprctl reload",
+    "pkill -x qs || true",
+    '''sh -c 'f=~/.local/state/tapes-deck/previous-shell; [ -f "$f" ] && while read -r cmd; do [ -n "$cmd" ] && setsid -f sh -c "$cmd" >/dev/null 2>&1; done < "$f"; true' ''',
+]

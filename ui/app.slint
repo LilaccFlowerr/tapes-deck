@@ -1,14 +1,15 @@
 import { Theme } from "theme.slint";
-import { TapeInfo } from "types.slint";
+import { FeaturedTape, TapeInfo } from "types.slint";
 import { EmptyView } from "views/empty.slint";
 import { InstallView } from "views/install.slint";
 import { LibraryView } from "views/library.slint";
 import { TapeView } from "views/tape.slint";
 
-export { TapeInfo }
+export { FeaturedTape, TapeInfo }
 
 export component AppWindow inherits Window {
     in property <[TapeInfo]> tapes;
+    in property <[FeaturedTape]> featured;
     in property <int> active: -1;
     in property <[string]> active-insert-hooks;
     in property <[string]> active-eject-hooks;
@@ -79,6 +80,7 @@ export component AppWindow inherits Window {
     InstallView {
         shown: root.adding;
         busy: root.busy;
+        featured: root.featured;
         progress: root.progress;
         progress-value: root.progress-value;
         status: root.status;
