@@ -54,3 +54,31 @@ where
         Err(e) => Output { ok: false, text: format!("couldn't start tapes-v2: {e}") },
     }
 }
+
+const INSTALL_SCRIPT: &str =
+    "curl -fsSL https://raw.githubusercontent.com/futurekismo-oss/tapes-v2/main/install.sh | bash";
+
+/// Runs the official tapes-v2 install script.
+pub fn download() -> Output {
+    // The script only falls back to `sudo` when ~/.local/bin isn't in PATH, which a GUI session
+    // can't answer. Putting it first keeps the install in the user's own directory.
+    let mut path = std::env::var_os("PATH").unwrap_or_default();
+    if let Some(home) = std::env::home_dir() {
+        let mut dirs = vec![home.join(".local/bin")];
+        dirs.extend(std::env::split_paths(&path));
+        path = std::env::join_paths(dirs).unwrap_or(path);
+    }
+    match Command::new("sh").arg("-c").arg(INSTALL_SCRIPT).env("PATH", path).stdin(Stdio::null()).output() {
+        Ok(out) => {
+            let mut text = String::from_utf8_lossy(&out.stdout).into_owned();
+            text.push_str(&String::from_utf8_lossy(&out.stderr));
+            // The script exits 0 without installing on NixOS, so check for the binary too.
+            let ok = out.status.success() && installed();
+            if out.status.success() && !ok {
+                text.push_str("\ntapes-v2 was not installed, see the output above");
+            }
+            Output { ok, text }
+        }
+        Err(e) => Output { ok: false, text: format!("couldn't start the installer: {e}") },
+    }
+}

@@ -22,6 +22,7 @@ export component AppWindow inherits Window {
     callback eject();
     callback insert(int);
     callback open-tapes-page();
+    callback install-tapes-cli();
     callback install(string, string, string, string);
 
     property <int> open-tape: -1;
@@ -40,6 +41,9 @@ export component AppWindow inherits Window {
     EmptyView {
         shown: root.show-empty;
         missing: root.missing;
+        busy: root.busy;
+        status: root.status;
+        install-cli => { root.install-tapes-cli(); }
         add-tape => { root.adding = true; }
         open-tapes-page => { root.open-tapes-page(); }
     }

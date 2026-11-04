@@ -1,11 +1,15 @@
 import { Theme } from "../theme.slint";
+import { Button } from "../components/button.slint";
 import { View } from "../components/view.slint";
 
 export component EmptyView inherits View {
     in property <bool> missing;
+    in property <bool> busy;
+    in property <string> status;
 
     callback open-tapes-page();
     callback add-tape();
+    callback install-cli();
 
     VerticalLayout {
         alignment: center;
@@ -27,7 +31,7 @@ export component EmptyView inherits View {
             }
         }
         Text {
-            text: root.missing ? "tapes-v2 not installed" : "add a tape";
+            text: root.missing ? (root.busy ? "installing tapes-v2..." : "tapes-v2 not installed") : "add a tape";
             horizontal-alignment: center;
             font-size: 24px;
             color: Theme.text;
@@ -35,6 +39,28 @@ export component EmptyView inherits View {
         if !root.missing: Text {
             text: "no tapes yet";
             horizontal-alignment: center;
+            font-size: 14px;
+            color: Theme.text-muted;
+        }
+        if root.missing: Text {
+            text: root.busy ? "downloading from github, one moment" : "tapes-deck needs it to work. install it now?";
+            horizontal-alignment: center;
+            font-size: 14px;
+            color: Theme.text-muted;
+        }
+        if root.missing && !root.busy: HorizontalLayout {
+            alignment: center;
+
+            Button {
+                width: 220px;
+                text: root.status != "" ? "try again" : "yes, install it";
+                clicked => { root.install-cli(); }
+            }
+        }
+        if root.missing && root.status != "": Text {
+            text: root.status;
+            horizontal-alignment: center;
+            wrap: word-wrap;
             font-size: 14px;
             color: Theme.text-muted;
         }

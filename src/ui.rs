@@ -18,6 +18,11 @@ pub fn setup(ui: &AppWindow) {
     });
 
     let weak = ui.as_weak();
+    ui.on_install_tapes_cli(move || {
+        run_in_background(&weak, Duration::ZERO, tapes::install_cli);
+    });
+
+    let weak = ui.as_weak();
     ui.on_install(move |source, name, branch, dir| {
         run_in_background(&weak, Duration::ZERO, move || {
             tapes::install(&source, Some(&name), Some(&branch), Some(&dir))
