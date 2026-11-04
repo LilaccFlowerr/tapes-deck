@@ -15,6 +15,8 @@ export component AppWindow inherits Window {
     in property <[string]> active-targets;
     in property <bool> busy;
     in property <string> status;
+    in property <string> progress;
+    in property <float> progress-value;
     in property <string> output;
     in property <bool> missing;
     in-out property <bool> adding;
@@ -22,6 +24,7 @@ export component AppWindow inherits Window {
     callback eject();
     callback insert(int);
     callback open-tapes-page();
+    callback install-tapes-cli();
     callback install(string, string, string, string);
 
     property <int> open-tape: -1;
@@ -40,6 +43,9 @@ export component AppWindow inherits Window {
     EmptyView {
         shown: root.show-empty;
         missing: root.missing;
+        busy: root.busy;
+        status: root.status;
+        install-cli => { root.install-tapes-cli(); }
         add-tape => { root.adding = true; }
         open-tapes-page => { root.open-tapes-page(); }
     }
@@ -73,6 +79,8 @@ export component AppWindow inherits Window {
     InstallView {
         shown: root.adding;
         busy: root.busy;
+        progress: root.progress;
+        progress-value: root.progress-value;
         status: root.status;
         back => { root.adding = false; }
         install(source, name, branch, dir) => { root.install(source, name, branch, dir); }

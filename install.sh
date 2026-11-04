@@ -41,5 +41,9 @@ case ":$PATH:" in
   *) echo "Note: $BIN_DIR is not in your \$PATH. Add this to your shell config:"
      echo "  export PATH=\"$BIN_DIR:\$PATH\"" ;;
 esac
-command -v tapes-v2 >/dev/null 2>&1 || [ -x "$BIN_DIR/tapes-v2" ] ||
-  echo "Note: tapes-v2 is not installed yet: https://github.com/futurekismo-oss/tapes-v2"
+if ! command -v tapes-v2 >/dev/null 2>&1 && [ ! -x "$BIN_DIR/tapes-v2" ]; then
+  echo "Installing tapes-v2..."
+  fetch "https://raw.githubusercontent.com/futurekismo-oss/tapes-v2/main/install.sh" "$tmp" &&
+    PATH="$BIN_DIR:$PATH" bash "$tmp" ||
+    echo "Note: couldn't install tapes-v2, see https://github.com/futurekismo-oss/tapes-v2"
+fi

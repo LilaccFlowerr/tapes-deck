@@ -2,10 +2,10 @@ mod cli;
 mod parse;
 mod types;
 
-pub use cli::{installed, PAGE};
+pub use cli::{download as install_cli, installed, PAGE};
 pub use types::{Details, Options, Output, Tape};
 
-use cli::run;
+use cli::{run, run_live};
 use parse::{parse_active, parse_details, parse_list};
 
 fn with_options(mut args: Vec<String>, options: Options) -> Vec<String> {
@@ -44,7 +44,13 @@ pub fn eject(options: Options) -> Output {
     run(with_options(vec!["eject".into()], options))
 }
 
-pub fn install(source: &str, name: Option<&str>, branch: Option<&str>, dir: Option<&str>) -> Output {
+pub fn install(
+    source: &str,
+    name: Option<&str>,
+    branch: Option<&str>,
+    dir: Option<&str>,
+    progress: impl FnMut(&str, Option<f32>),
+) -> Output {
     let mut args = vec!["install".to_string(), source.to_string()];
     for (flag, value) in [("--name", name), ("--branch", branch), ("--dir", dir)] {
         if let Some(value) = value.filter(|v| !v.is_empty()) {
@@ -52,5 +58,5 @@ pub fn install(source: &str, name: Option<&str>, branch: Option<&str>, dir: Opti
             args.push(value.into());
         }
     }
-    run(args)
+    run_live(args, progress)
 }

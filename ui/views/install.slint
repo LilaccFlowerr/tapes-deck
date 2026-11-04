@@ -7,6 +7,8 @@ import { View } from "../components/view.slint";
 export component InstallView inherits View {
     in property <bool> busy;
     in property <string> status;
+    in property <string> progress;
+    in property <float> progress-value;
 
     callback back();
     callback install(string, string, string, string);
@@ -95,6 +97,28 @@ export component InstallView inherits View {
                     enabled: root.ready;
                     clicked => { root.submit(); }
                 }
+            }
+
+            if root.busy: track := Rectangle {
+                height: 8px;
+                border-radius: 4px;
+                background: Theme.text.with-alpha(0.12);
+                clip: true;
+
+                Rectangle {
+                    x: 0;
+                    width: track.width * Math.clamp(root.progress-value, 0, 1);
+                    border-radius: 4px;
+                    background: Theme.text;
+                    animate width { duration: 160ms; easing: ease-out; }
+                }
+            }
+
+            if root.busy: Text {
+                text: root.progress != "" ? root.progress : "getting started…";
+                font-size: 14px;
+                color: Theme.text-muted;
+                wrap: word-wrap;
             }
         }
     }

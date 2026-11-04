@@ -45,7 +45,7 @@ So everything you do in the app works the same in the terminal, and the other wa
 ## Quickstart
 
 1. Install [tapes-v2](https://github.com/futurekismo-oss/tapes-v2) and tapes-deck (see below).
-2. Run `tapes-deck`. If tapes-v2 can't be found, the app says so and links you to it.
+2. Run `tapes-deck`. If tapes-v2 can't be found, the app asks if you want it installed, and does it with one click.
 3. Add a tape: install one from a repo, or put one in `~/.tapes` yourself.
 4. Insert it to try it out. Eject it to go back to your old config.
 
@@ -108,7 +108,7 @@ An AppImage is just a file; delete it.
 
 Ideas for what comes next, roughly in order:
 
-- [ ] **Auto-install tapes-v2**: tapes-deck installs tapes-v2 for you if it's missing
+- [x] **Auto-install tapes-v2**: tapes-deck installs tapes-v2 for you if it's missing
 - [ ] **Inline `tape.toml` editor**: edit a tape's config inside the app
 - [ ] **Inline targets editor**: manage the (fake) `.config` targets of a tape without leaving the app
 - [ ] **Starter tape**: a preconfigured tape that doubles as a tutorial. It installs itself, then

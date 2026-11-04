@@ -18,9 +18,23 @@ pub fn setup(ui: &AppWindow) {
     });
 
     let weak = ui.as_weak();
+    ui.on_install_tapes_cli(move || {
+        run_in_background(&weak, Duration::ZERO, tapes::install_cli);
+    });
+
+    let weak = ui.as_weak();
     ui.on_install(move |source, name, branch, dir| {
+        let progress = weak.clone();
         run_in_background(&weak, Duration::ZERO, move || {
-            tapes::install(&source, Some(&name), Some(&branch), Some(&dir))
+            tapes::install(&source, Some(&name), Some(&branch), Some(&dir), |line, fraction| {
+                let line = SharedString::from(line);
+                let _ = progress.upgrade_in_event_loop(move |ui| {
+                    ui.set_progress(line);
+                    if let Some(fraction) = fraction {
+                        ui.set_progress_value(fraction);
+                    }
+                });
+            })
         });
     });
 
@@ -53,6 +67,8 @@ fn run_in_background(
     let Some(ui) = weak.upgrade() else { return };
     ui.set_busy(true);
     ui.set_status("".into());
+    ui.set_progress("".into());
+    ui.set_progress_value(0.0);
 
     let weak = weak.clone();
     std::thread::spawn(move || {
