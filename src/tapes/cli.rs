@@ -1,3 +1,4 @@
+use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -5,10 +6,12 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use super::parse;
 use super::types::Output;
 
-const NOT_FOUND: &str = "tapes-v2 not installed";
-pub const PAGE: &str = "https://github.com/futurekismo-oss/tapes-v2";
+const NOT_FOUND: &str = "tapes not installed";
 
-pub fn installed() -> bool {
+/// The tapes binary built into tapes-deck, see build.rs.
+const BUNDLED: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/tapes"));
+
+fn installed() -> bool {
     bin().is_file()
 }
 
@@ -16,9 +19,9 @@ fn bin() -> PathBuf {
     if let Ok(bin) = std::env::var("TAPES_BIN") {
         return bin.into();
     }
-    find_in_path("tapes-v2")
-        .or_else(|| std::env::home_dir().map(|home| home.join(".local/bin/tapes-v2")))
-        .unwrap_or_else(|| "tapes-v2".into())
+    find_in_path("tapes")
+        .or_else(|| std::env::home_dir().map(|home| home.join(".local/bin/tapes")))
+        .unwrap_or_else(|| "tapes".into())
 }
 
 fn find_in_path(name: &str) -> Option<PathBuf> {
@@ -36,7 +39,7 @@ where
 }
 
 /// Like `run`, but reports the current line of output and, when known, how far along it is.
-/// Git only prints percentages to a terminal, so this runs tapes-v2 inside `script`'s when it can.
+/// Git only prints percentages to a terminal, so this runs tapes inside `script`'s when it can.
 pub fn run_live<I, S>(args: I, progress: impl FnMut(&str, Option<f32>)) -> Output
 where
     I: IntoIterator<Item = S>,
@@ -57,8 +60,6 @@ fn run_command(
     args: Vec<std::ffi::OsString>,
     mut progress: impl FnMut(&str, Option<f32>),
 ) -> Output {
-    // Hooks may start daemons (`setsid -f ...`) that inherit our stdout/stderr. With pipes,
-    // reading the output would wait until those daemons exit, so capture into a file instead.
     static COUNTER: AtomicUsize = AtomicUsize::new(0);
     let id = COUNTER.fetch_add(1, Ordering::Relaxed);
     let path = std::env::temp_dir().join(format!("tapes-deck-{}-{id}.out", std::process::id()));
@@ -90,11 +91,10 @@ fn run_command(
     match result {
         Ok(status) => Output { ok: status.success(), text },
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Output { ok: false, text: NOT_FOUND.into() },
-        Err(e) => Output { ok: false, text: format!("couldn't start tapes-v2: {e}") },
+        Err(e) => Output { ok: false, text: format!("couldn't start tapes: {e}") },
     }
 }
 
-/// The end of a growing output file; a big clone writes a lot of progress lines.
 fn read_tail(path: &std::path::Path) -> String {
     use std::io::{Read, Seek, SeekFrom};
     let Ok(mut file) = std::fs::File::open(path) else { return String::new() };
@@ -105,30 +105,15 @@ fn read_tail(path: &std::path::Path) -> String {
     String::from_utf8_lossy(&bytes).into_owned()
 }
 
-const INSTALL_SCRIPT: &str =
-    "curl -fsSL https://raw.githubusercontent.com/futurekismo-oss/tapes-v2/main/install.sh | bash";
-
-/// Runs the official tapes-v2 install script.
-pub fn download() -> Output {
-    // The script only falls back to `sudo` when ~/.local/bin isn't in PATH, which a GUI session
-    // can't answer. Putting it first keeps the install in the user's own directory.
-    let mut path = std::env::var_os("PATH").unwrap_or_default();
-    if let Some(home) = std::env::home_dir() {
-        let mut dirs = vec![home.join(".local/bin")];
-        dirs.extend(std::env::split_paths(&path));
-        path = std::env::join_paths(dirs).unwrap_or(path);
+pub fn ensure() -> std::io::Result<()> {
+    if installed() {
+        return Ok(());
     }
-    match Command::new("sh").arg("-c").arg(INSTALL_SCRIPT).env("PATH", path).stdin(Stdio::null()).output() {
-        Ok(out) => {
-            let mut text = String::from_utf8_lossy(&out.stdout).into_owned();
-            text.push_str(&String::from_utf8_lossy(&out.stderr));
-            // The script exits 0 without installing on NixOS, so check for the binary too.
-            let ok = out.status.success() && installed();
-            if out.status.success() && !ok {
-                text.push_str("\ntapes-v2 was not installed, see the output above");
-            }
-            Output { ok, text }
-        }
-        Err(e) => Output { ok: false, text: format!("couldn't start the installer: {e}") },
-    }
+    let target = bin();
+    let dir = target.parent().ok_or(std::io::ErrorKind::NotFound)?;
+    std::fs::create_dir_all(dir)?;
+    let partial = dir.join(format!(".tapes.{}", std::process::id()));
+    std::fs::write(&partial, BUNDLED)?;
+    std::fs::set_permissions(&partial, std::fs::Permissions::from_mode(0o755))?;
+    std::fs::rename(&partial, &target)
 }
