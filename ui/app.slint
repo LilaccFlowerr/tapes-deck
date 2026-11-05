@@ -40,6 +40,7 @@ export component AppWindow inherits Window {
     callback edit-hook-moved(int, int, int);
     pure callback describe-hook(string) -> string;
     callback edit-save();
+    callback edit-active();
 
     property <int> open-tape: -1;
     property <bool> viewing;
@@ -76,6 +77,7 @@ export component AppWindow inherits Window {
         add-tape => { root.adding = true; }
         eject => { root.eject(); }
         insert(i) => { root.insert(i); }
+        edit-active => { root.edit-active(); }
     }
 
     TapeView {
