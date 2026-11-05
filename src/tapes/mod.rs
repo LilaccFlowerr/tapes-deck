@@ -3,7 +3,7 @@ mod featured;
 mod parse;
 mod types;
 
-pub use cli::{download as install_cli, installed, PAGE};
+pub use cli::ensure;
 pub use featured::FEATURED;
 use featured::Featured;
 pub use types::{Details, Options, Output, Tape};

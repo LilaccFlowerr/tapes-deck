@@ -6,6 +6,9 @@ use slint::{ComponentHandle, Model, ModelRc, SharedString, VecModel, Weak};
 use crate::{tapes, AppWindow, FeaturedTape, TapeInfo};
 
 pub fn setup(ui: &AppWindow) {
+    if let Err(e) = tapes::ensure() {
+        eprintln!("couldn't unpack the bundled tapes: {e}");
+    }
     load_tapes(ui);
 
     let featured: Vec<FeaturedTape> = tapes::FEATURED
@@ -19,20 +22,6 @@ pub fn setup(ui: &AppWindow) {
         })
         .collect();
     ui.set_featured(ModelRc::from(Rc::new(VecModel::from(featured))));
-
-    ui.on_open_tapes_page(|| {
-        let _ = std::process::Command::new("xdg-open")
-            .arg(tapes::PAGE)
-            .stdin(std::process::Stdio::null())
-            .stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::null())
-            .spawn();
-    });
-
-    let weak = ui.as_weak();
-    ui.on_install_tapes_cli(move || {
-        run_in_background(&weak, Duration::ZERO, tapes::install_cli);
-    });
 
     let weak = ui.as_weak();
     ui.on_install(move |source, name, branch, dir| {
@@ -107,25 +96,19 @@ pub fn load_tapes(ui: &AppWindow) {
     apply(ui, fetch());
 }
 
-/// Everything the UI shows, read from tapes-v2 without touching the UI so it can run on any thread.
+/// Everything the UI shows, read from tapes without touching the UI so it can run on any thread.
 struct Loaded {
-    missing: bool,
     tapes: Vec<(String, String)>,
     active: i32,
     details: tapes::Details,
 }
 
 fn fetch() -> Loaded {
-    if !tapes::installed() {
-        return Loaded { missing: true, tapes: Vec::new(), active: -1, details: tapes::Details::default() };
-    }
-
     let list = tapes::list();
     let details: Vec<tapes::Details> = list.iter().map(|tape| tapes::details(&tape.name)).collect();
     let active = tapes::active(&list);
 
     Loaded {
-        missing: false,
         tapes: list
             .iter()
             .zip(&details)
@@ -137,11 +120,6 @@ fn fetch() -> Loaded {
 }
 
 fn apply(ui: &AppWindow, loaded: Loaded) {
-    ui.set_missing(loaded.missing);
-    if loaded.missing {
-        return;
-    }
-
     let infos: Vec<TapeInfo> = loaded
         .tapes
         .into_iter()
