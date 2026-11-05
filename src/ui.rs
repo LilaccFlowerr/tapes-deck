@@ -237,9 +237,9 @@ fn lines(model: &ModelRc<SharedString>) -> Vec<String> {
 
 fn setup_editor(ui: &AppWindow) {
     let weak = ui.as_weak();
-    ui.on_edit_active(move || {
+    ui.on_open_editor(move |index| {
         let Some(ui) = weak.upgrade() else { return };
-        let Ok(index) = usize::try_from(ui.get_active()) else { return };
+        let Ok(index) = usize::try_from(index) else { return };
         let Some(tape) = ui.get_tapes().row_data(index) else { return };
         open_editor(&ui, tape.name.as_str());
     });

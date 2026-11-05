@@ -4,7 +4,6 @@ import { EditorView } from "views/editor.slint";
 import { EmptyView } from "views/empty.slint";
 import { InstallView } from "views/install.slint";
 import { LibraryView } from "views/library.slint";
-import { TapeView } from "views/tape.slint";
 
 export { FeaturedTape, TapeInfo }
 
@@ -40,14 +39,10 @@ export component AppWindow inherits Window {
     callback edit-hook-moved(int, int, int);
     pure callback describe-hook(string) -> string;
     callback edit-save();
-    callback edit-active();
+    callback open-editor(int);
 
-    property <int> open-tape: -1;
-    property <bool> viewing;
-
-    property <bool> show-tape: !root.adding && !root.editing && root.viewing && root.open-tape < root.tapes.length;
     property <bool> show-empty: !root.adding && !root.editing && root.tapes.length == 0;
-    property <bool> show-library: !root.adding && !root.editing && !root.show-tape && root.tapes.length > 0;
+    property <bool> show-library: !root.adding && !root.editing && root.tapes.length > 0;
 
     title: "tapes-deck";
     icon: @image-url("../assets/icon.svg");
@@ -70,21 +65,11 @@ export component AppWindow inherits Window {
         busy: root.busy;
         status: root.status;
         output: root.output;
-        open-tape(i) => {
-            root.open-tape = i;
-            root.viewing = true;
-        }
+        open-tape(i) => { root.open-editor(i); }
         add-tape => { root.adding = true; }
         eject => { root.eject(); }
         insert(i) => { root.insert(i); }
-        edit-active => { root.edit-active(); }
-    }
-
-    TapeView {
-        shown: root.show-tape;
-        tape: root.tapes[root.open-tape];
-        marker: Theme.marker(root.open-tape);
-        back => { root.viewing = false; }
+        edit-active => { root.open-editor(root.active); }
     }
 
     InstallView {
