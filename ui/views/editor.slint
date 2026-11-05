@@ -43,6 +43,7 @@ component Track inherits Rectangle {
     }
 
     Text {
+        x: 0px;
         width: 30px;
         height: parent.height;
         text: root.number + ".";
@@ -124,6 +125,8 @@ component TrackList inherits VerticalLayout {
         vertical-alignment: center;
     }
 
+    property <length> content: root.hooks.length * root.track-height + 40px;
+
     Rectangle {
         vertical-stretch: 1;
 
@@ -131,7 +134,7 @@ component TrackList inherits VerticalLayout {
             width: parent.width;
             height: parent.height;
             mouse-drag-pan-enabled: false;
-            content-height: root.hooks.length * root.track-height;
+            content-height: root.content;
 
             for hook[i] in root.hooks: Track {
                 y: i * root.track-height;
@@ -147,70 +150,86 @@ component TrackList inherits VerticalLayout {
                 down => { root.moved(i, 1); }
                 remove => { root.removed(i); }
             }
+
+            add := TouchArea {
+                y: root.hooks.length * root.track-height;
+                width: parent.width;
+                height: 40px;
+                mouse-cursor: pointer;
+                clicked => {
+                    root.added();
+                    list.content-y = Math.min(0px, list.height - root.content);
+                }
+
+                Text {
+                    x: 40px;
+                    text: "+ add track";
+                    font-family: Theme.font-hand;
+                    font-size: 24px;
+                    color: add.has-hover ? root.marker : Theme.text-muted;
+                    vertical-alignment: center;
+                }
+            }
         }
 
-        if root.hooks.length * root.track-height > list.height: Rectangle {
+        if root.content > list.height: Rectangle {
             x: parent.width - 3px;
-            y: -list.content-y * list.height / (root.hooks.length * root.track-height);
+            y: -list.content-y * list.height / root.content;
             width: 3px;
-            height: list.height * list.height / (root.hooks.length * root.track-height);
+            height: list.height * list.height / root.content;
             border-radius: 2px;
             background: Theme.text-muted.with-alpha(0.5);
-        }
-    }
-
-    add := TouchArea {
-        height: 40px;
-        mouse-cursor: pointer;
-        clicked => {
-            root.added();
-            list.content-y = Math.min(0px, list.height - root.hooks.length * root.track-height);
-        }
-
-        Text {
-            x: 40px;
-            text: "+ add track";
-            font-family: Theme.font-hand;
-            font-size: 24px;
-            color: add.has-hover ? root.marker : Theme.text-muted;
-            vertical-alignment: center;
         }
     }
 }
 
 component Summary inherits Rectangle {
     in property <string> title;
+    in property <string> subtitle;
     in property <[string]> hooks;
     in property <color> marker;
 
     pure callback describe(string) -> string;
 
     Text {
+        x: 0px;
+        y: 0px;
         width: parent.width;
         height: 28px;
         text: root.title + " · " + root.hooks.length;
         font-family: Theme.font-hand;
-        font-size: 24px;
+        font-size: 26px;
         font-weight: 700;
         color: root.marker;
         vertical-alignment: center;
     }
 
+    Text {
+        x: 0px;
+        y: 28px;
+        width: parent.width;
+        height: 20px;
+        text: root.subtitle;
+        font-size: 12px;
+        color: Theme.text-muted;
+        overflow: elide;
+    }
+
     if root.hooks.length == 0: Text {
-        y: 30px;
-        height: 22px;
+        y: 56px;
+        height: 24px;
         text: "nothing";
-        font-size: 13px;
+        font-size: 14px;
         color: Theme.text-muted.with-alpha(0.7);
         vertical-alignment: center;
     }
 
     for hook[i] in root.hooks: Text {
-        y: 30px + i * 22px;
+        y: 56px + i * 26px;
         width: parent.width;
-        height: 22px;
+        height: 26px;
         text: (i + 1) + ". " + (root.describe(hook) != "" ? root.describe(hook) : hook);
-        font-size: 13px;
+        font-size: 14px;
         color: Theme.text;
         overflow: elide;
         vertical-alignment: center;
@@ -244,7 +263,7 @@ component Tab inherits TouchArea {
     in property <color> marker;
 
     mouse-cursor: pointer;
-    width: text.preferred-width + 8px;
+    width: text.preferred-width + 18px;
 
     text := Text {
         text: root.label;
@@ -296,7 +315,7 @@ export component EditorView inherits View {
 
     Panel {
         width: Math.min(600px, root.width - 48px);
-        height: Math.min(620px, root.height - 32px);
+        height: Math.min(560px, root.height - 32px);
 
         Text {
             x: 32px;
@@ -397,16 +416,19 @@ export component EditorView inherits View {
                 height: parent.height;
 
                 Hint {
+                    x: 0px;
+                    y: 0px;
                     width: parent.width;
-                    height: 84px;
+                    height: 72px;
                     marker: root.marker;
                     text: root.step == 1
-                        ? root.lead(1) + "These run, in this order, right after you insert the tape. If one fails, the ones after it are skipped."
-                        : root.lead(2) + "These run right after you eject the tape. Your old config is back by then, but whatever the tape started has been stopped. Type the commands that bring your own setup back, in the order they should run.";
+                        ? (root.guide[1] != "" ? root.guide[1] : "These run, in this order, right after you insert the tape.") + " If one fails, the ones after it are skipped."
+                        : (root.guide[2] != "" ? root.guide[2] : "These run right after you eject the tape. Your old config is back by then, but whatever the tape started has been stopped. Type the commands that bring your own setup back, in the order they should run.");
                 }
 
                 if root.step == 2: Text {
-                    y: 92px;
+                    x: 0px;
+                    y: 80px;
                     height: 34px;
                     text: "revive your own config here";
                     font-family: Theme.font-hand;
@@ -417,7 +439,7 @@ export component EditorView inherits View {
                 }
 
                 TrackList {
-                    y: root.step == 1 ? 96px : 130px;
+                    y: root.step == 1 ? 84px : 118px;
                     width: parent.width;
                     height: parent.height - self.y;
                     hooks: root.step == 1 ? root.insert-hooks : root.eject-hooks;
@@ -438,14 +460,17 @@ export component EditorView inherits View {
                 property <length> column: (self.width - (self.has-install ? 2 : 1) * 20px) / (self.has-install ? 3 : 2);
 
                 Hint {
+                    x: 0px;
+                    y: 0px;
                     width: parent.width;
-                    height: 84px;
+                    height: 72px;
                     marker: root.marker;
-                    text: root.lead(3) + "This is what you set up. Save writes it to the tape.toml of this tape.";
+                    text: root.guide[3] != "" ? root.guide[3] + " Save writes your setup to the tape.toml." : "This is what you set up. Save writes it to the tape.toml of this tape.";
                 }
 
                 Text {
-                    y: 92px;
+                    x: 0px;
+                    y: 80px;
                     width: parent.width;
                     height: 34px;
                     text: root.name != "" ? root.name : "(no name)";
@@ -458,7 +483,7 @@ export component EditorView inherits View {
                 }
 
                 Text {
-                    y: 128px;
+                    y: 116px;
                     width: parent.width;
                     height: 20px;
                     text: root.desc;
@@ -468,10 +493,12 @@ export component EditorView inherits View {
                 }
 
                 Summary {
-                    y: 164px;
+                    x: 0px;
+                    y: 152px;
                     width: finish.column;
-                    height: parent.height - 164px;
+                    height: parent.height - 152px;
                     title: "insert";
+                    subtitle: "when you insert the tape";
                     hooks: root.insert-hooks;
                     marker: Theme.marker(1);
                     describe(command) => { root.describe(command) }
@@ -479,10 +506,11 @@ export component EditorView inherits View {
 
                 Summary {
                     x: finish.column + 20px;
-                    y: 164px;
+                    y: 152px;
                     width: finish.column;
-                    height: parent.height - 164px;
+                    height: parent.height - 152px;
                     title: "eject";
+                    subtitle: "when you eject it";
                     hooks: root.eject-hooks;
                     marker: Theme.marker(2);
                     describe(command) => { root.describe(command) }
@@ -490,10 +518,11 @@ export component EditorView inherits View {
 
                 if finish.has-install: Summary {
                     x: 2 * (finish.column + 20px);
-                    y: 164px;
+                    y: 152px;
                     width: finish.column;
-                    height: parent.height - 164px;
+                    height: parent.height - 152px;
                     title: "at install";
+                    subtitle: "once, when installed";
                     hooks: root.install-hooks;
                     marker: Theme.marker(3);
                     describe(command) => { root.describe(command) }
