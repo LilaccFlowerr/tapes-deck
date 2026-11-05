@@ -1,6 +1,7 @@
 import { Theme } from "../theme.slint";
 import { Button } from "../components/button.slint";
 import { View } from "../components/view.slint";
+import { Button } from "../components/button.slint";
 
 export component EmptyView inherits View {
     in property <bool> missing;
@@ -30,11 +31,14 @@ export component EmptyView inherits View {
                 source: @image-url("../../assets/add-tape.svg");
             }
         }
-        Text {
-            text: root.missing ? (root.busy ? "installing tapes-v2..." : "tapes-v2 not installed") : "add a tape";
-            horizontal-alignment: center;
-            font-size: 24px;
-            color: Theme.text;
+        HorizontalLayout {
+            alignment: center;
+
+            Button {
+                width: 170px;
+                text: "+ add tape";
+                clicked => { root.add-tape(); }
+            }
         }
         if !root.missing: Text {
             text: "no tapes yet";
