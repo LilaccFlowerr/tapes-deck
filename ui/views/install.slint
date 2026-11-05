@@ -93,8 +93,6 @@ export component InstallView inherits View {
                                 background: pick.selected ? pick.marker.with-alpha(0.12) : pick.has-hover ? Theme.text.with-alpha(0.04) : transparent;
                                 animate border-color, background { duration: 120ms; }
                             }
-
-                            // A strip of washi tape holding the card, like on the cassettes.
                             Rectangle {
                                 x: (parent.width - self.width) / 2;
                                 y: -6px;

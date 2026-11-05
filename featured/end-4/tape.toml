@@ -1,7 +1,7 @@
 [tape]
 name = "@NAME@"
 desc = "illogical-impulse: usability-first dotfiles for Hyprland by end-4 (the config folders only)."
-# Not installed by tapes-deck, install them with your package manager.
+# What this tape needs. tapes-deck does not install these: use your package manager.
 dependencies = [
     "hyprland",
     "quickshell",
@@ -19,7 +19,6 @@ dependencies = [
 [hooks]
 # Every hook ends well: tapes-v2 skips the rest of the hooks after one that fails.
 insert = [
-    '''sh -c 'mkdir -p ~/.local/state/tapes-deck && ps -C qs -o args= > ~/.local/state/tapes-deck/previous-shell; true' ''',
     "hyprctl reload",
     "pkill -x qs || true",
     "qs -c ii -d",
@@ -27,5 +26,4 @@ insert = [
 eject = [
     "hyprctl reload",
     "pkill -x qs || true",
-    '''sh -c 'f=~/.local/state/tapes-deck/previous-shell; [ -f "$f" ] && while read -r cmd; do [ -n "$cmd" ] && setsid -f sh -c "$cmd" >/dev/null 2>&1; done < "$f"; true' ''',
 ]

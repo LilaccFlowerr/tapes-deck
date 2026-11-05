@@ -1,13 +1,9 @@
-/// A ready-made tape offered on the install page. Picking one only fills in the form; installing
-/// it clones the dots' own repo, writes the `tape.toml` below and runs the setup script once.
 pub struct Featured {
     pub name: &'static str,
     pub description: &'static str,
     pub source: &'static str,
     pub dir: &'static str,
-    /// The tape.toml to write, with `@NAME@` standing in for the name the tape was installed under.
     pub tape_toml: &'static str,
-    /// Run in the tape's folder after installing, for dots that need something built first.
     pub setup: Option<&'static str>,
 }
 

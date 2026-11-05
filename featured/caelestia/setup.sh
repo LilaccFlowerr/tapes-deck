@@ -1,42 +1,64 @@
 #!/bin/sh
-# Extra setup for this tape, run by tapes-deck inside the tape's folder right after it is installed.
-# It does what `caelestia install` does for the default components in manifest.toml, but keeps the
-# configs in the tape instead of writing them into ~/.config.
 set -eu
 
-# Installs packages (official repos and AUR) with whichever AUR helper is there. Their root steps go
-# through pkexec (a password popup) instead of sudo, which can't prompt without a terminal.
-install_packages() {
-  for helper in yay paru; do
-    if command -v "$helper" >/dev/null 2>&1; then
-      "$helper" --sudo pkexec -S --needed --noconfirm "$@"
-      return
-    fi
-  done
-  echo "No AUR helper (yay or paru) found. Install these yourself: $*"
-  return 1
+tape="$PWD"
+cache="$HOME/.cache/tapes-deck"
+mkdir -p "$cache"
+
+jobs() {
+  mem=$(awk '/MemAvailable/ { print int($2 / 2097152) }' /proc/meminfo)
+  cores=$(nproc)
+  [ "$mem" -lt 1 ] && mem=1
+  [ "$mem" -gt "$cores" ] && mem=$cores
+  echo "$mem"
 }
 
-# Only the configs of the default components belong in the tape. The rest has its dots somewhere
-# else (firefox, vscode, ...), would replace a whole folder of yours (nvim) or is optional.
+need() {
+  missing=""
+  for tool in "$@"; do
+    command -v "$tool" >/dev/null 2>&1 || missing="$missing $tool"
+  done
+  if [ -n "$missing" ]; then
+    echo "==> Can't build without:$missing. Install them and install this tape again."
+    exit 1
+  fi
+}
+
 rm -rf manifest.toml .luacheckrc .luarc.json firefox vscode spicetify zed zen nvim packages uwsm
-# The dots call this folder thunar, the config folder is Thunar.
 [ -d thunar ] && mv thunar Thunar
 
-echo "Installing the caelestia packages"
-install_packages \
-  caelestia-shell caelestia-cli hyprland xdg-desktop-portal-hyprland \
-  xdg-desktop-portal-gtk ttf-jetbrains-mono-nerd fish eza \
-  zoxide direnv foot fastfetch \
-  btop micro thunar starship \
-  adw-gtk-theme papirus-icon-theme papirus-folders qtengine \
-  frameworkintegration darkly-bin gnome-keyring polkit-gnome \
-  networkmanager bluez bluez-utils pipewire \
-  pipewire-pulse pipewire-audio pipewire-alsa pipewire-jack \
-  wireplumber pwvucontrol wl-clipboard cliphist \
-  noto-fonts noto-fonts-cjk noto-fonts-emoji curl \
-  git trash-cli jq lazygit \
-  bat ripgrep ydotool hyprpicker \
-  xdg-user-dirs
+if [ -s /usr/lib/libm3shapes.so ] && [ -s /usr/lib/qt6/qml/M3Shapes/libm3shapesplugin.so ]; then
+  echo "==> M3Shapes is already installed"
+else
+  need git cmake ninja
+  echo "==> Building M3Shapes, a drawing library the shell needs. This compiles C++ and takes a few minutes."
+  src="$cache/m3shapes"
+  rm -rf "$src"
+  git clone --depth 1 https://github.com/soramanew/m3shapes.git "$src"
+  cmake -S "$src" -B "$src/build" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib
+  cmake --build "$src/build" --parallel "$(jobs)"
+  echo "==> Installing M3Shapes. A password window will open."
+  pkexec cmake --install "$src/build"
+  sync
+fi
 
-xdg-user-dirs-update
+if [ -s /usr/lib/caelestia/version ] && [ -s /usr/lib/qt6/qml/Caelestia/qmldir ] && [ -s /etc/xdg/quickshell/caelestia/shell.qml ]; then
+  echo "==> The caelestia shell is already installed, using that one"
+  mkdir -p quickshell
+  cp -a /etc/xdg/quickshell/caelestia quickshell/caelestia
+else
+  need git cmake ninja
+  echo "==> Building the caelestia shell. This compiles C++ and takes a few minutes."
+  src="$cache/caelestia-shell"
+  rm -rf "$src"
+  git clone --depth 1 https://github.com/caelestia-dots/shell.git "$src"
+  version=$(git ls-remote --tags --refs https://github.com/caelestia-dots/shell.git | sed 's|.*refs/tags/v\{0,1\}||' | sort -V | tail -1)
+  mkdir -p quickshell/caelestia
+  cmake -S "$src" -B "$src/build" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib \
+    -DVERSION="${version:-0.0.0}" -DGIT_REVISION="$(git -C "$src" rev-parse HEAD)" \
+    -DINSTALL_QSCONFDIR="$tape/quickshell/caelestia"
+  cmake --build "$src/build" --parallel "$(jobs)"
+  echo "==> Installing the caelestia shell. A password window will open."
+  pkexec sh -c "cmake --install '$src/build' && chown -R $(id -u):$(id -g) '$tape/quickshell/caelestia'"
+  sync
+fi
