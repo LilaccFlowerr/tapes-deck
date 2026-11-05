@@ -2,7 +2,7 @@ mod cli;
 mod parse;
 mod types;
 
-pub use cli::{download as install_cli, installed, PAGE};
+pub use cli::ensure;
 pub use types::{Details, Options, Output, Tape};
 
 use cli::{run, run_live};
