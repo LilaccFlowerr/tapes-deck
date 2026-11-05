@@ -12,7 +12,7 @@ Use [GitHub Issues](https://github.com/LilaccFlowerr/tapes-deck/issues/new). For
 
 - what you did, what you expected and what happened instead
 - your distro and how you installed tapes-deck (install script, AppImage, built from source)
-- your `tapes-v2 --version`
+- your `tapes --version`
 - the text from the output view in the app, if there is any
 
 ## AI policy
@@ -34,8 +34,8 @@ If a PR looks like it was submitted without reading it, it will be closed withou
 
 You need Rust (edition 2024, so a recent stable toolchain), `pkg-config` and the fontconfig
 development files (`libfontconfig1-dev` on Debian/Ubuntu, `fontconfig` on Arch).
-[tapes-v2](https://github.com/futurekismo-oss/tapes-v2) must be installed, on `PATH` or in
-`~/.local/bin`.
+Building also needs `cargo` and network access: `build.rs` builds the `tapes` crate and embeds
+its `tapes` binary. Set `TAPES_BINARY=/path/to/tapes` to embed a prebuilt one instead.
 
 ```
 git clone https://github.com/LilaccFlowerr/tapes-deck
@@ -82,9 +82,9 @@ tapes-deck/
 └── src/              everything it does (Rust)
     ├── main.rs       creates the window, wires things up, runs
     ├── ui.rs         glue between src/tapes and the UI
-    └── tapes/        talks to tapes-v2
+    └── tapes/        talks to tapes
         ├── mod.rs    the actions: show, status, insert, eject, install
-        ├── cli.rs    finds and runs the tapes-v2 command
+        ├── cli.rs    finds and runs the tapes command
         ├── parse.rs  turns its output into Rust types
         └── types.rs  those types
 ```
@@ -92,7 +92,7 @@ tapes-deck/
 ### What goes where
 
 **`ui/`** holds only presentation. Slint files get data in through properties and send user
-actions out through callbacks. They contain no knowledge of tapes-v2.
+actions out through callbacks. They contain no knowledge of tapes.
 
 - **`ui/app.slint`**: the `AppWindow`. It holds the top-level properties and callbacks that Rust
   talks to, and decides which view is visible (for example the empty view when there are no tapes).
@@ -110,9 +110,9 @@ Rule of thumb: if you copy a piece of Slint into a second view, move it to `comp
 
 **`src/`** holds behaviour.
 
-- **`src/tapes/`**: everything that touches tapes-v2: running the command and parsing its output
+- **`src/tapes/`**: everything that touches tapes: running the command and parsing its output
   into plain Rust types. No Slint in here. That keeps it easy to test, and it's the place to
-  change if tapes-v2's output changes.
+  change if tapes's output changes.
 - **`src/ui.rs`**: turns data from `src/tapes` into Slint models and properties, and connects
   callbacks from the UI to calls in `src/tapes`. Slow commands should run off the UI thread so
   the window doesn't freeze.

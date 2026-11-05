@@ -1,14 +1,15 @@
 import { Theme } from "theme.slint";
-import { TapeInfo } from "types.slint";
+import { FeaturedTape, TapeInfo } from "types.slint";
+import { EditorView } from "views/editor.slint";
 import { EmptyView } from "views/empty.slint";
 import { InstallView } from "views/install.slint";
 import { LibraryView } from "views/library.slint";
-import { TapeView } from "views/tape.slint";
 
-export { TapeInfo }
+export { FeaturedTape, TapeInfo }
 
 export component AppWindow inherits Window {
     in property <[TapeInfo]> tapes;
+    in property <[FeaturedTape]> featured;
     in property <int> active: -1;
     in property <[string]> active-insert-hooks;
     in property <[string]> active-eject-hooks;
@@ -18,21 +19,30 @@ export component AppWindow inherits Window {
     in property <string> progress;
     in property <float> progress-value;
     in property <string> output;
-    in property <bool> missing;
     in-out property <bool> adding;
+    in-out property <bool> editing;
+    in-out property <string> edit-tape;
+    in-out property <string> edit-name;
+    in-out property <string> edit-desc;
+    in property <[string]> edit-insert;
+    in property <[string]> edit-eject;
+    in property <[string]> edit-install;
+    in property <string> edit-error;
+    in property <[string]> edit-guide;
 
     callback eject();
     callback insert(int);
-    callback open-tapes-page();
-    callback install-tapes-cli();
     callback install(string, string, string, string);
+    callback edit-hook-changed(int, int, string);
+    callback edit-hook-added(int);
+    callback edit-hook-removed(int, int);
+    callback edit-hook-moved(int, int, int);
+    pure callback describe-hook(string) -> string;
+    callback edit-save();
+    callback open-editor(int);
 
-    property <int> open-tape: -1;
-    property <bool> viewing;
-
-    property <bool> show-tape: !root.adding && root.viewing && root.open-tape < root.tapes.length;
-    property <bool> show-empty: !root.adding && root.tapes.length == 0;
-    property <bool> show-library: !root.adding && !root.show-tape && root.tapes.length > 0;
+    property <bool> show-empty: !root.adding && !root.editing && root.tapes.length == 0;
+    property <bool> show-library: !root.adding && !root.editing && root.tapes.length > 0;
 
     title: "tapes-deck";
     icon: @image-url("../assets/icon.svg");
@@ -42,12 +52,7 @@ export component AppWindow inherits Window {
 
     EmptyView {
         shown: root.show-empty;
-        missing: root.missing;
-        busy: root.busy;
-        status: root.status;
-        install-cli => { root.install-tapes-cli(); }
         add-tape => { root.adding = true; }
-        open-tapes-page => { root.open-tapes-page(); }
     }
 
     LibraryView {
@@ -60,29 +65,40 @@ export component AppWindow inherits Window {
         busy: root.busy;
         status: root.status;
         output: root.output;
-        open-tape(i) => {
-            root.open-tape = i;
-            root.viewing = true;
-        }
+        open-tape(i) => { root.open-editor(i); }
         add-tape => { root.adding = true; }
         eject => { root.eject(); }
         insert(i) => { root.insert(i); }
-    }
-
-    TapeView {
-        shown: root.show-tape;
-        tape: root.tapes[root.open-tape];
-        marker: Theme.marker(root.open-tape);
-        back => { root.viewing = false; }
+        edit-active => { root.open-editor(root.active); }
     }
 
     InstallView {
         shown: root.adding;
         busy: root.busy;
+        featured: root.featured;
         progress: root.progress;
         progress-value: root.progress-value;
         status: root.status;
         back => { root.adding = false; }
         install(source, name, branch, dir) => { root.install(source, name, branch, dir); }
+    }
+
+    EditorView {
+        shown: root.editing;
+        tape: root.edit-tape;
+        name <=> root.edit-name;
+        desc <=> root.edit-desc;
+        insert-hooks: root.edit-insert;
+        eject-hooks: root.edit-eject;
+        install-hooks: root.edit-install;
+        error: root.edit-error;
+        guide: root.edit-guide;
+        hook-changed(kind, i, text) => { root.edit-hook-changed(kind, i, text); }
+        hook-added(kind) => { root.edit-hook-added(kind); }
+        hook-removed(kind, i) => { root.edit-hook-removed(kind, i); }
+        hook-moved(kind, i, by) => { root.edit-hook-moved(kind, i, by); }
+        describe(command) => { root.describe-hook(command) }
+        save => { root.edit-save(); }
+        skip => { root.editing = false; }
     }
 }

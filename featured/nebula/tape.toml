@@ -1,0 +1,54 @@
+[tape]
+name = "@NAME@"
+desc = "A Hyprland desktop with a Quickshell shell, Material 3 Expressive shapes and colors that follow your wallpaper."
+# What this tape needs. tapes-deck does not install these: use your package manager.
+dependencies = [
+    "hyprland",
+    "hypridle",
+    "hyprlock",
+    "quickshell",
+    "matugen",
+    "xdg-desktop-portal-hyprland",
+    "ghostty",
+    "firefox",
+    "nautilus",
+    "fuzzel",
+    "cliphist",
+    "wl-clipboard",
+    "grim",
+    "slurp",
+    "mate-polkit",
+    "playerctl",
+    "brightnessctl",
+    "cava",
+    "zenity",
+    "libnotify",
+    "ffmpeg",
+    "jq",
+    "pciutils",
+    "fastfetch",
+    "gpu-screen-recorder",
+    "inter-font",
+    "ttf-material-symbols-variable",
+    "ttf-nerd-fonts-symbols",
+    "ttf-jetbrains-mono-nerd",
+    "noto-fonts-emoji",
+    "papirus-icon-theme",
+    "git",
+    "cmake",
+    "ninja",
+    "gcc",
+    "qt6-shadertools",
+]
+
+[hooks]
+# Every hook ends well: tapes-v2 skips the rest of the hooks after one that fails.
+insert = [
+    "hyprctl reload",
+    "pkill -x qs || true",
+    "qs -c nebula -d",
+]
+eject = [
+    "hyprctl reload",
+    "pkill -x qs || true",
+]

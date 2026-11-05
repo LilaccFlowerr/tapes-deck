@@ -21,6 +21,7 @@ export component DeckPanel inherits Panel {
     in property <bool> live: true;
 
     callback eject();
+    callback edit();
 
     border-color: root.drop-hint ? Theme.text : Theme.text-muted.with-alpha(0.2);
     border-width: root.drop-hint ? 2px : 1px;
@@ -45,6 +46,7 @@ export component DeckPanel inherits Panel {
             ejecting: root.ejecting;
             live: root.live;
             eject => { root.eject(); }
+            clicked => { root.edit(); }
         }
 
         SignalBox {
@@ -134,6 +136,7 @@ export component DeckPanel inherits Panel {
             ejecting: root.ejecting;
             live: root.live;
             eject => { root.eject(); }
+            clicked => { root.edit(); }
         }
 
         VerticalLayout {

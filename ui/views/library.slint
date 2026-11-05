@@ -21,6 +21,7 @@ export component LibraryView inherits View {
     callback add-tape();
     callback eject();
     callback insert(int);
+    callback edit-active();
 
     property <int> pressed: -1;
     property <int> confirm-target: -1;
@@ -188,6 +189,7 @@ export component LibraryView inherits View {
             ejecting: root.ejecting;
             live: root.shown;
             eject => { root.start-eject(); }
+            edit => { root.edit-active(); }
         }
 
         TapeGrid {
@@ -229,6 +231,7 @@ export component LibraryView inherits View {
             ejecting: root.ejecting;
             live: root.shown;
             eject => { root.start-eject(); }
+            edit => { root.edit-active(); }
         }
 
         TapeGrid {

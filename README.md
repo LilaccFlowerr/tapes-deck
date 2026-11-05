@@ -8,7 +8,7 @@
 The GUI to make ricing easier.
 Browse your dotfile setups, switch between them with a click and install new ones from a git repo.
 
-A desktop app for [tapes-v2](https://github.com/futurekismo-oss/tapes-v2).
+A desktop app for [tapes](https://github.com/futurekismo-oss/tapes).
 
 <a href="https://github.com/LilaccFlowerr/tapes-deck/issues/new">Report Bug</a>
 &middot;
@@ -30,29 +30,29 @@ A desktop app for [tapes-v2](https://github.com/futurekismo-oss/tapes-v2).
 
 ## What is this?
 
-[tapes-v2](https://github.com/futurekismo-oss/tapes-v2) is a dotfile switcher: a *tape* is a
+[tapes](https://github.com/futurekismo-oss/tapes) is a dotfile switcher: a *tape* is a
 complete setup (a rice) that lives in `~/.tapes`, and you swap your whole config by inserting
 one and get your old one back by ejecting it. tapes-deck is the same thing without the terminal.
 
 - See all your tapes in one place, with their description, hooks and targets
 - Insert a tape and eject it again with a click
 - Install a tape straight from a git repo: pick a URL, and optionally a name, branch and subfolder
-- See what tapes-v2 printed, so you know what happened when something goes wrong
+- See what tapes printed, so you know what happened when something goes wrong
 
-It doesn't reimplement tapes-v2: it runs the `tapes-v2` command and shows you the result.
+It doesn't reimplement tapes: it runs the `tapes` command and shows you the result.
 So everything you do in the app works the same in the terminal, and the other way around.
 
 ## Quickstart
 
-1. Install [tapes-v2](https://github.com/futurekismo-oss/tapes-v2) and tapes-deck (see below).
-2. Run `tapes-deck`. If tapes-v2 can't be found, the app asks if you want it installed, and does it with one click.
+1. Install tapes-deck (see below).
+2. Run `tapes-deck`. It ships with [tapes](https://github.com/futurekismo-oss/tapes) and unpacks it to `~/.local/bin` on first start if you don't have it.
 3. Add a tape: install one from a repo, or put one in `~/.tapes` yourself.
 4. Insert it to try it out. Eject it to go back to your old config.
 
 ## Installation
 
-tapes-deck needs [tapes-v2](https://github.com/futurekismo-oss/tapes-v2). Use the latest release
-of it. It only runs on Linux (x86_64).
+tapes-deck bundles [tapes](https://github.com/futurekismo-oss/tapes), so there's nothing else to
+install. It only runs on Linux (x86_64).
 
 **Install script** (grabs the latest release, installs to `~/.local/bin` and adds an
 app-launcher entry)
@@ -108,7 +108,7 @@ An AppImage is just a file; delete it.
 
 Ideas for what comes next, roughly in order:
 
-- [x] **Auto-install tapes-v2**: tapes-deck installs tapes-v2 for you if it's missing
+- [x] **Bundled tapes**: tapes-deck ships with tapes and unpacks it if it's missing
 - [ ] **Inline `tape.toml` editor**: edit a tape's config inside the app
 - [ ] **Inline targets editor**: manage the (fake) `.config` targets of a tape without leaving the app
 - [ ] **Starter tape**: a preconfigured tape that doubles as a tutorial. It installs itself, then
@@ -126,7 +126,7 @@ Built with Rust and [Slint](https://slint.dev). The handwriting font is
 [Caveat](https://fonts.google.com/specimen/Caveat) (SIL Open Font License). The cassette drawing
 is public domain, from Openclipart.
 
-tapes-deck is a separate project from tapes-v2. The author of tapes-v2 knows about it and sees it
+tapes-deck is a separate project from tapes. The author of tapes knows about it and sees it
 as a fitting companion.
 
 ## License

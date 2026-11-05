@@ -2,12 +2,11 @@
 pkgname=tapes-deck-bin
 pkgver=0.1.0
 pkgrel=1
-pkgdesc='Desktop GUI for tapes-v2, the per-target dotfile switcher'
+pkgdesc='Desktop GUI for tapes, the per-target dotfile switcher (tapes is bundled)'
 arch=('x86_64')
 url='https://github.com/LilaccFlowerr/tapes-deck'
 license=('GPL-3.0-only')
 depends=('fontconfig')
-optdepends=('tapes-v2: the tool tapes-deck drives')
 provides=('tapes-deck')
 conflicts=('tapes-deck')
 source=("tapes-deck-$pkgver::$url/releases/download/v$pkgver/tapes-deck-x86_64-unknown-linux-gnu"
