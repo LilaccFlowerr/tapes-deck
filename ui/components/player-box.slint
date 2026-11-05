@@ -13,9 +13,16 @@ export component PlayerBox inherits Rectangle {
     in property <bool> live: true;
 
     callback eject();
+    callback clicked();
 
     width: 520px * root.scale;
     height: 442px * root.scale;
+
+    TouchArea {
+        enabled: root.loaded && !root.busy;
+        mouse-cursor: self.enabled ? MouseCursor.pointer : MouseCursor.default;
+        clicked => { root.clicked(); }
+    }
 
     Rectangle {
         x: 260px * (root.scale - 1);

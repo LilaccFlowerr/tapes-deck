@@ -1,5 +1,6 @@
 use std::os::unix::fs::PermissionsExt;
-use std::path::PathBuf;
+use std::ffi::OsString;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -35,29 +36,35 @@ where
     S: AsRef<std::ffi::OsStr>,
 {
     let args = args.into_iter().map(|a| a.as_ref().to_owned()).collect();
-    run_command(bin(), args, |_, _| {})
+    run_command(bin(), args, None, |_, _| {})
 }
 
-/// Like `run`, but reports the current line of output and, when known, how far along it is.
-/// Git only prints percentages to a terminal, so this runs tapes inside `script`'s when it can.
 pub fn run_live<I, S>(args: I, progress: impl FnMut(&str, Option<f32>)) -> Output
 where
     I: IntoIterator<Item = S>,
     S: AsRef<std::ffi::OsStr>,
 {
-    let args: Vec<std::ffi::OsString> = args.into_iter().map(|a| a.as_ref().to_owned()).collect();
-    let Some(script) = find_in_path("script") else {
-        return run_command(bin(), args, progress);
-    };
+    let args = args.into_iter().map(|a| a.as_ref().to_owned()).collect();
+    let (program, args) = in_terminal(bin(), args);
+    run_command(program, args, None, progress)
+}
+
+pub fn run_script(script: &str, cwd: &Path, progress: impl FnMut(&str, Option<f32>)) -> Output {
+    let (program, args) = in_terminal("sh".into(), vec!["-c".into(), script.into()]);
+    run_command(program, args, Some(cwd), progress)
+}
+
+fn in_terminal(program: PathBuf, args: Vec<OsString>) -> (PathBuf, Vec<OsString>) {
+    let Some(script) = find_in_path("script") else { return (program, args) };
     let quote = |s: &std::ffi::OsStr| format!("'{}'", s.to_string_lossy().replace('\'', "'\\''"));
-    let command: Vec<String> =
-        std::iter::once(bin().into_os_string()).chain(args).map(|a| quote(&a)).collect();
-    run_command(script, vec!["-qefc".into(), command.join(" ").into(), "/dev/null".into()], progress)
+    let command: Vec<String> = std::iter::once(program.into_os_string()).chain(args).map(|a| quote(&a)).collect();
+    (script, vec!["-qefc".into(), command.join(" ").into(), "/dev/null".into()])
 }
 
 fn run_command(
     program: PathBuf,
-    args: Vec<std::ffi::OsString>,
+    args: Vec<OsString>,
+    cwd: Option<&Path>,
     mut progress: impl FnMut(&str, Option<f32>),
 ) -> Output {
     static COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -66,12 +73,12 @@ fn run_command(
     let read = || std::fs::read(&path).map(|b| String::from_utf8_lossy(&b).into_owned()).unwrap_or_default();
 
     let result = std::fs::File::create(&path).and_then(|file| {
-        let mut child = Command::new(program)
-            .args(args)
-            .stdin(Stdio::null())
-            .stdout(file.try_clone()?)
-            .stderr(file)
-            .spawn()?;
+        let mut command = Command::new(program);
+        command.args(args).stdin(Stdio::null()).stdout(file.try_clone()?).stderr(file);
+        if let Some(cwd) = cwd {
+            command.current_dir(cwd);
+        }
+        let mut child = command.spawn()?;
         let mut last = String::new();
         loop {
             if let Some(status) = child.try_wait()? {
@@ -80,8 +87,8 @@ fn run_command(
             let tail = read_tail(&path);
             let line = parse::current_line(&tail);
             if line != last {
-                last = line.to_string();
-                progress(line, parse::parse_fraction(line));
+                progress(&line, parse::parse_fraction(&line));
+                last = line;
             }
             std::thread::sleep(std::time::Duration::from_millis(80));
         }

@@ -1,10 +1,12 @@
 import { Theme } from "../theme.slint";
 import { Button } from "../components/button.slint";
+import { FeaturedTape } from "../types.slint";
 import { Field } from "../components/field.slint";
 import { Panel } from "../components/panel.slint";
 import { View } from "../components/view.slint";
 
 export component InstallView inherits View {
+    in property <[FeaturedTape]> featured;
     in property <bool> busy;
     in property <string> status;
     in property <string> progress;
@@ -51,6 +53,82 @@ export component InstallView inherits View {
                 font-size: 40px;
                 font-weight: 700;
                 color: Theme.text;
+            }
+
+            if root.featured.length > 0: VerticalLayout {
+                spacing: 12px;
+
+                Text {
+                    text: "featured tapes";
+                    font-family: Theme.font-hand;
+                    font-size: 22px;
+                    color: Theme.text-muted;
+                }
+
+                HorizontalLayout {
+                    spacing: 12px;
+
+                    for tape[i] in root.featured: pick := TouchArea {
+                        property <bool> selected: source.text == tape.source && dir.text == tape.dir;
+                        property <color> marker: Theme.marker(i);
+
+                        height: 124px;
+                        enabled: !root.busy;
+                        mouse-cursor: root.busy ? MouseCursor.default : MouseCursor.pointer;
+                        clicked => {
+                            source.text = tape.source;
+                            name.text = tape.name;
+                            branch.text = "";
+                            dir.text = tape.dir;
+                        }
+
+                        face := Rectangle {
+                            y: pick.has-hover && !root.busy ? -3px : 0;
+                            animate y { duration: 150ms; easing: ease-out; }
+
+                            Rectangle {
+                                border-radius: 10px;
+                                border-width: 1.5px;
+                                border-color: pick.selected ? pick.marker : Theme.text-muted.with-alpha(0.3);
+                                background: pick.selected ? pick.marker.with-alpha(0.12) : pick.has-hover ? Theme.text.with-alpha(0.04) : transparent;
+                                animate border-color, background { duration: 120ms; }
+                            }
+                            Rectangle {
+                                x: (parent.width - self.width) / 2;
+                                y: -6px;
+                                width: 46px;
+                                height: 14px;
+                                background: pick.marker.with-alpha(pick.selected ? 0.9 : 0.6);
+                                transform-rotation: i == 1 ? 3deg : -3deg;
+                                animate background { duration: 120ms; }
+                            }
+
+                            VerticalLayout {
+                                padding: 12px;
+                                padding-top: 20px;
+                                spacing: 2px;
+                                alignment: start;
+
+                                Text {
+                                    text: tape.name;
+                                    font-family: Theme.font-hand;
+                                    font-size: 28px;
+                                    font-weight: 700;
+                                    color: Theme.text;
+                                    overflow: elide;
+                                }
+                                Text {
+                                    text: tape.description;
+                                    font-size: 12px;
+                                    color: Theme.text-muted;
+                                    wrap: word-wrap;
+                                    overflow: elide;
+                                    max-height: 34px;
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             source := Field {
