@@ -1,9 +1,13 @@
 mod cli;
+mod config;
+mod explain;
 mod featured;
 mod parse;
 mod types;
 
 pub use cli::ensure;
+pub use config::{load as load_config, save as save_config, Config};
+pub use explain::describe as describe_hook;
 pub use featured::FEATURED;
 use featured::Featured;
 pub use types::{Details, Options, Output, Tape};

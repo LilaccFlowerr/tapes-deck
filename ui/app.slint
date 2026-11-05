@@ -1,5 +1,6 @@
 import { Theme } from "theme.slint";
 import { FeaturedTape, TapeInfo } from "types.slint";
+import { EditorView } from "views/editor.slint";
 import { EmptyView } from "views/empty.slint";
 import { InstallView } from "views/install.slint";
 import { LibraryView } from "views/library.slint";
@@ -20,17 +21,32 @@ export component AppWindow inherits Window {
     in property <float> progress-value;
     in property <string> output;
     in-out property <bool> adding;
+    in-out property <bool> editing;
+    in-out property <string> edit-tape;
+    in-out property <string> edit-name;
+    in-out property <string> edit-desc;
+    in property <[string]> edit-insert;
+    in property <[string]> edit-eject;
+    in property <[string]> edit-install;
+    in property <string> edit-error;
+    in property <[string]> edit-guide;
 
     callback eject();
     callback insert(int);
     callback install(string, string, string, string);
+    callback edit-hook-changed(int, int, string);
+    callback edit-hook-added(int);
+    callback edit-hook-removed(int, int);
+    callback edit-hook-moved(int, int, int);
+    pure callback describe-hook(string) -> string;
+    callback edit-save();
 
     property <int> open-tape: -1;
     property <bool> viewing;
 
-    property <bool> show-tape: !root.adding && root.viewing && root.open-tape < root.tapes.length;
-    property <bool> show-empty: !root.adding && root.tapes.length == 0;
-    property <bool> show-library: !root.adding && !root.show-tape && root.tapes.length > 0;
+    property <bool> show-tape: !root.adding && !root.editing && root.viewing && root.open-tape < root.tapes.length;
+    property <bool> show-empty: !root.adding && !root.editing && root.tapes.length == 0;
+    property <bool> show-library: !root.adding && !root.editing && !root.show-tape && root.tapes.length > 0;
 
     title: "tapes-deck";
     icon: @image-url("../assets/icon.svg");
@@ -78,5 +94,24 @@ export component AppWindow inherits Window {
         status: root.status;
         back => { root.adding = false; }
         install(source, name, branch, dir) => { root.install(source, name, branch, dir); }
+    }
+
+    EditorView {
+        shown: root.editing;
+        tape: root.edit-tape;
+        name <=> root.edit-name;
+        desc <=> root.edit-desc;
+        insert-hooks: root.edit-insert;
+        eject-hooks: root.edit-eject;
+        install-hooks: root.edit-install;
+        error: root.edit-error;
+        guide: root.edit-guide;
+        hook-changed(kind, i, text) => { root.edit-hook-changed(kind, i, text); }
+        hook-added(kind) => { root.edit-hook-added(kind); }
+        hook-removed(kind, i) => { root.edit-hook-removed(kind, i); }
+        hook-moved(kind, i, by) => { root.edit-hook-moved(kind, i, by); }
+        describe(command) => { root.describe-hook(command) }
+        save => { root.edit-save(); }
+        skip => { root.editing = false; }
     }
 }

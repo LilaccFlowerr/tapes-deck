@@ -27,7 +27,7 @@ pub fn setup(ui: &AppWindow) {
     ui.on_install(move |source, name, branch, dir| {
         let progress = weak.clone();
         run_in_background(&weak, Duration::ZERO, move || {
-            tapes::install(&source, Some(&name), Some(&branch), Some(&dir), |line, fraction| {
+            let output = tapes::install(&source, Some(&name), Some(&branch), Some(&dir), |line, fraction| {
                 let line = SharedString::from(line);
                 let _ = progress.upgrade_in_event_loop(move |ui| {
                     ui.set_progress(line);
@@ -35,9 +35,16 @@ pub fn setup(ui: &AppWindow) {
                         ui.set_progress_value(fraction);
                     }
                 });
-            })
+            });
+            if output.ok {
+                let tape = installed_name(&source, &name);
+                let _ = progress.upgrade_in_event_loop(move |ui| open_editor(&ui, &tape));
+            }
+            output
         });
     });
+
+    setup_editor(ui);
 
     let weak = ui.as_weak();
     ui.on_eject(move || {
@@ -171,4 +178,122 @@ fn source(description: &str) -> &str {
         .strip_prefix("Tape installed from ")
         .unwrap_or(description)
         .trim_start_matches("https://")
+}
+
+fn installed_name(source: &str, name: &str) -> String {
+    let name = name.trim();
+    if !name.is_empty() {
+        return name.to_lowercase();
+    }
+    if let Some(tape) = tapes::FEATURED.iter().find(|tape| tape.source == source) {
+        return tape.name.to_string();
+    }
+    source
+        .trim_end_matches('/')
+        .trim_end_matches(".git")
+        .rsplit('/')
+        .next()
+        .unwrap_or("tape")
+        .to_lowercase()
+}
+
+fn open_editor(ui: &AppWindow, tape: &str) {
+    let config = match tapes::load_config(tape) {
+        Ok(config) => config,
+        Err(e) => {
+            ui.set_status(e.into());
+            return;
+        }
+    };
+    let guide = tapes::FEATURED.iter().find(|featured| featured.name == tape).map(|featured| &featured.tutorial);
+    let guide = guide.map_or(Vec::new(), |g| [g.about, g.insert, g.eject, g.finish].map(String::from).to_vec());
+
+    ui.set_edit_tape(tape.into());
+    ui.set_edit_name(config.name.into());
+    ui.set_edit_desc(config.desc.into());
+    ui.set_edit_insert(strings(config.insert));
+    ui.set_edit_eject(strings(config.eject));
+    ui.set_edit_install(strings(config.install));
+    ui.set_edit_guide(strings(guide));
+    ui.set_edit_error("".into());
+    ui.set_editing(true);
+}
+
+fn hook_list(ui: &AppWindow, kind: i32) -> ModelRc<SharedString> {
+    if kind == 0 { ui.get_edit_insert() } else { ui.get_edit_eject() }
+}
+
+fn set_hook_list(ui: &AppWindow, kind: i32, rows: Vec<String>) {
+    if kind == 0 {
+        ui.set_edit_insert(strings(rows));
+    } else {
+        ui.set_edit_eject(strings(rows));
+    }
+}
+
+fn lines(model: &ModelRc<SharedString>) -> Vec<String> {
+    model.iter().map(|line| line.to_string()).collect()
+}
+
+fn setup_editor(ui: &AppWindow) {
+    ui.on_describe_hook(|command| tapes::describe_hook(command.as_str()).into());
+
+    let weak = ui.as_weak();
+    ui.on_edit_hook_changed(move |kind, index, text| {
+        let Some(ui) = weak.upgrade() else { return };
+        let list = hook_list(&ui, kind);
+        if let Some(rows) = list.as_any().downcast_ref::<VecModel<SharedString>>() {
+            rows.set_row_data(index as usize, text);
+        }
+    });
+
+    let weak = ui.as_weak();
+    ui.on_edit_hook_added(move |kind| {
+        let Some(ui) = weak.upgrade() else { return };
+        let list = hook_list(&ui, kind);
+        if let Some(rows) = list.as_any().downcast_ref::<VecModel<SharedString>>() {
+            rows.push("".into());
+        }
+    });
+
+    let weak = ui.as_weak();
+    ui.on_edit_hook_removed(move |kind, index| {
+        let Some(ui) = weak.upgrade() else { return };
+        let mut rows = lines(&hook_list(&ui, kind));
+        if (index as usize) < rows.len() {
+            rows.remove(index as usize);
+        }
+        set_hook_list(&ui, kind, rows);
+    });
+
+    let weak = ui.as_weak();
+    ui.on_edit_hook_moved(move |kind, index, by| {
+        let Some(ui) = weak.upgrade() else { return };
+        let mut rows = lines(&hook_list(&ui, kind));
+        let (from, to) = (index as usize, index + by);
+        if to >= 0 && (to as usize) < rows.len() && from < rows.len() {
+            rows.swap(from, to as usize);
+        }
+        set_hook_list(&ui, kind, rows);
+    });
+
+    let weak = ui.as_weak();
+    ui.on_edit_save(move || {
+        let Some(ui) = weak.upgrade() else { return };
+        let config = tapes::Config {
+            name: ui.get_edit_name().to_string(),
+            desc: ui.get_edit_desc().replace(['\n', '\r'], " "),
+            insert: lines(&ui.get_edit_insert()),
+            eject: lines(&ui.get_edit_eject()),
+            install: lines(&ui.get_edit_install()),
+        };
+        if config.name.trim().is_empty() {
+            ui.set_edit_error("a tape needs a name".into());
+            return;
+        }
+        match tapes::save_config(&ui.get_edit_tape(), &config) {
+            Ok(()) => ui.set_editing(false),
+            Err(e) => ui.set_edit_error(e.into()),
+        }
+    });
 }
