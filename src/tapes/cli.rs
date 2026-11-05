@@ -39,8 +39,6 @@ where
     run_command(bin(), args, None, |_, _| {})
 }
 
-/// Like `run`, but reports the current line of output and, when known, how far along it is.
-/// Git only prints percentages to a terminal, so this runs tapes inside `script`'s when it can.
 pub fn run_live<I, S>(args: I, progress: impl FnMut(&str, Option<f32>)) -> Output
 where
     I: IntoIterator<Item = S>,
@@ -51,7 +49,6 @@ where
     run_command(program, args, None, progress)
 }
 
-/// Runs a shell script in `cwd`, reporting its output the same way as `run_live`.
 pub fn run_script(script: &str, cwd: &Path, progress: impl FnMut(&str, Option<f32>)) -> Output {
     let (program, args) = in_terminal("sh".into(), vec!["-c".into(), script.into()]);
     run_command(program, args, Some(cwd), progress)
@@ -90,8 +87,8 @@ fn run_command(
             let tail = read_tail(&path);
             let line = parse::current_line(&tail);
             if line != last {
-                last = line.to_string();
-                progress(line, parse::parse_fraction(line));
+                progress(&line, parse::parse_fraction(&line));
+                last = line;
             }
             std::thread::sleep(std::time::Duration::from_millis(80));
         }

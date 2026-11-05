@@ -1,12 +1,32 @@
 use super::types::{Details, Tape};
 
+pub fn strip_ansi(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut chars = text.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c != '\u{1b}' {
+            out.push(c);
+        } else if chars.peek() == Some(&'[') {
+            chars.next();
+            for end in chars.by_ref() {
+                if ('@'..='~').contains(&end) {
+                    break;
+                }
+            }
+        }
+    }
+    out
+}
+
 /// What is on screen right now in live output: git rewrites its progress line with `\r`.
-pub fn current_line(text: &str) -> &str {
+pub fn current_line(text: &str) -> String {
+    let text = strip_ansi(text);
     text.split(['\r', '\n'])
         .map(str::trim)
         .rfind(|line| !line.is_empty())
         .unwrap_or("")
         .trim_start_matches("remote: ")
+        .to_string()
 }
 
 /// Overall progress (0..=1) of a git clone, read from a line like `Receiving objects:  45% (318/707)`.
@@ -25,8 +45,9 @@ pub fn parse_fraction(line: &str) -> Option<f32> {
 
 /// Collapses progress lines that were redrawn in place to the version that ended up on screen.
 pub fn clean_output(text: &str) -> String {
-    text.lines()
-        .map(|line| line.trim_end_matches('\r').rsplit('\r').next().unwrap_or(""))
+    strip_ansi(text)
+        .lines()
+        .map(|line| line.trim_end_matches('\r').rsplit('\r').next().unwrap_or("").to_string())
         .collect::<Vec<_>>()
         .join("\n")
 }
@@ -88,6 +109,14 @@ mod tests {
         let live = "Cloning into 'x'...\r\nReceiving objects:  44% (312/707)\rReceiving objects:  45% (319/707), 42 MiB | 4 MiB/s";
         assert_eq!(current_line(live), "Receiving objects:  45% (319/707), 42 MiB | 4 MiB/s");
         assert_eq!(current_line("remote: Counting objects: 3% (1/30)\r"), "Counting objects: 3% (1/30)");
+    }
+
+    #[test]
+    fn colour_codes_do_not_reach_the_screen() {
+        assert_eq!(strip_ansi("\u{1b}[1m\u{1b}[92m   Compiling\u{1b}[0m futures v0.3.32"), "   Compiling futures v0.3.32");
+        assert_eq!(current_line("\u{1b}[1m\u{1b}[92m   Compiling\u{1b}[0m futures v0.3.32\r\n"), "Compiling futures v0.3.32");
+        assert_eq!(strip_ansi("plain text"), "plain text");
+        assert_eq!(clean_output("\u{1b}[31mred\u{1b}[0m"), "red");
     }
 
     #[test]

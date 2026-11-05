@@ -76,13 +76,12 @@ fn install_args(source: &str, name: &str, branch: &str, dir: &str, no_hooks: boo
     args
 }
 
-/// Clones the dots, replaces the generated tape.toml with ours and runs the tape's one-time setup.
 fn install_featured(tape: &Featured, name: &str, mut progress: impl FnMut(&str, Option<f32>)) -> Output {
     let name = if name.is_empty() { tape.name } else { name }.to_lowercase();
-    // The bar covers the clone; the setup that follows only reports lines, which keeps it from jumping back.
     let steps = if tape.setup.is_some() { 2.0 } else { 1.0 };
+    let downloading = format!("Downloading {} from GitHub", tape.name);
     let mut out = run_live(install_args(tape.source, &name, "", tape.dir, true), |line, fraction| {
-        progress(line, fraction.map(|f| f / steps));
+        progress(&format!("{downloading}\n{line}"), fraction.map(|f| f / steps));
     });
     if !out.ok {
         return out;
@@ -96,8 +95,15 @@ fn install_featured(tape: &Featured, name: &str, mut progress: impl FnMut(&str, 
     }
 
     if let Some(script) = tape.setup {
-        progress("setting up", Some(1.0 / steps));
-        let setup = run_script(script, &folder, |line, _| progress(line, None));
+        let mut stage = String::from("Setting things up");
+        progress(&stage, Some(1.0 / steps));
+        let setup = run_script(script, &folder, |line, _| match line.strip_prefix("==> ") {
+            Some(text) => {
+                stage = text.to_string();
+                progress(&stage, None);
+            }
+            None => progress(&format!("{stage}\n{line}"), None),
+        });
         out.text.push('\n');
         out.text.push_str(&setup.text);
         if !setup.ok {
