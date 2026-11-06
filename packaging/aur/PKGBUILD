@@ -1,6 +1,7 @@
 # Maintainer: LilaccFlowerr
 pkgname=tapes-deck-bin
-pkgver=0.1.0
+pkgver=0.4.1.beta
+_tag=v0.4.1-beta # pkgver cannot contain '-', so the git tag is kept separately
 pkgrel=1
 pkgdesc='Desktop GUI for tapes, the per-target dotfile switcher (tapes is bundled)'
 arch=('x86_64')
@@ -9,13 +10,13 @@ license=('GPL-3.0-only')
 depends=('fontconfig')
 provides=('tapes-deck')
 conflicts=('tapes-deck')
-source=("tapes-deck-$pkgver::$url/releases/download/v$pkgver/tapes-deck-x86_64-unknown-linux-gnu"
-        "tapes-deck-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+source=("tapes-deck-bin-$pkgver::$url/releases/download/$_tag/tapes-deck-x86_64-unknown-linux-gnu"
+        "tapes-deck-$pkgver.tar.gz::$url/archive/refs/tags/$_tag.tar.gz")
 sha256sums=('SKIP' 'SKIP') # run `updpkgsums` before publishing
 
 package() {
-  install -Dm755 "tapes-deck-$pkgver" "$pkgdir/usr/bin/tapes-deck"
-  cd "tapes-deck-$pkgver"
+  install -Dm755 "tapes-deck-bin-$pkgver" "$pkgdir/usr/bin/tapes-deck"
+  cd "tapes-deck-${_tag#v}"
   install -Dm644 packaging/tapes-deck.desktop "$pkgdir/usr/share/applications/tapes-deck.desktop"
   install -Dm644 assets/icon.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/tapes-deck.svg"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
