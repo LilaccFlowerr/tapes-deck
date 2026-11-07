@@ -50,7 +50,7 @@ pub const FEATURED: &[Featured] = &[
         source: "https://github.com/end-4/dots-hyprland",
         dir: "dots/.config",
         tape_toml: include_str!("../../featured/end-4/tape.toml"),
-        setup: None,
+        setup: Some(include_str!("../../featured/end-4/setup.sh")),
         tutorial: Tutorial {
             about: "These are end-4's dots (illogical-impulse): only the config folders, none of the programs they use.",
             insert: "Here Hyprland reloads with end-4's config, the shell that was running is stopped and end-4's shell starts (qs -c ii).",
