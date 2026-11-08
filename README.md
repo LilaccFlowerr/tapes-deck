@@ -77,6 +77,13 @@ makepkg -si
 
 Remove it later with `sudo pacman -R tapes-deck-bin`.
 
+**Nix**
+
+```bash
+nix run github:LilaccFlowerr/tapes-deck
+nix profile install github:LilaccFlowerr/tapes-deck
+```
+
 **From source**
 
 ```bash
