@@ -49,6 +49,7 @@ insert = [
     "qs -c nebula -d",
 ]
 eject = [
+    "pkill -f nebula-eq.conf || true",
     "hyprctl reload",
     "pkill -x qs || true",
 ]

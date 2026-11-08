@@ -40,7 +40,7 @@ pub const FEATURED: &[Featured] = &[
         tutorial: Tutorial {
             about: "Nebula is a Hyprland desktop built around a Quickshell shell, with Material 3 shapes and colours that follow your wallpaper.",
             insert: "Here Hyprland reloads with Nebula's config, the shell that was running is stopped and Nebula's own shell starts (qs -c nebula).",
-            eject: "On eject your own config is back and Nebula's shell is stopped. Nothing starts your own shell again unless you add it here.",
+            eject: "On eject your own config is back and Nebula's shell and equalizer are stopped. Nothing starts your own shell again unless you add it here.",
             finish: "Nebula needs packages this app doesn't install: see dependencies in this tape's tape.toml. M3Shapes was built for you if it wasn't there yet.",
         },
     },

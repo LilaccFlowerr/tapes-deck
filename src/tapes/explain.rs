@@ -27,6 +27,7 @@ pub fn describe(command: &str) -> String {
 fn stop_target(rest: &[&str]) -> String {
     match rest.iter().rfind(|w| !w.starts_with('-') && **w != "||" && **w != "true") {
         Some(&"qs") | Some(&"quickshell") => "the shell that is running".to_string(),
+        Some(&"nebula-eq.conf") => "Nebula's equalizer".to_string(),
         Some(name) => name.to_string(),
         None => "a running program".to_string(),
     }
@@ -55,6 +56,7 @@ mod tests {
     #[test]
     fn other_programs_and_unknown_commands() {
         assert_eq!(describe("pkill waybar"), "Stop waybar");
+        assert_eq!(describe("pkill -f nebula-eq.conf || true"), "Stop Nebula's equalizer");
         assert_eq!(describe("waybar &"), "Start a program in the background");
         assert_eq!(describe("notify-send 'Tapes' 'hi'"), "Show a notification");
         assert_eq!(describe("my-own-thing --flag"), "");
