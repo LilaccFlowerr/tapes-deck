@@ -1,7 +1,7 @@
 # Maintainer: LilaccFlowerr
 pkgname=tapes-deck-bin
-pkgver=0.4.3.beta
-_tag=v0.4.3-beta # pkgver cannot contain '-', so the git tag is kept separately
+pkgver=0.4.4.beta
+_tag=v0.4.4-beta # pkgver cannot contain '-', so the git tag is kept separately
 pkgrel=1
 pkgdesc='Desktop GUI for tapes, the per-target dotfile switcher (tapes is bundled)'
 arch=('x86_64')
