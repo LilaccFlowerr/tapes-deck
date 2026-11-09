@@ -18,6 +18,14 @@ A desktop app for [tapes](https://github.com/futurekismo-oss/tapes).
 
 </div>
 
+<div align="center">
+
+[![Stars](https://img.shields.io/github/stars/LilaccFlowerr/tapes-deck?style=for-the-badge&logo=github&color=f5c542)](https://github.com/LilaccFlowerr/tapes-deck/stargazers)
+
+⭐ **Like it? Give it a star, it really helps other people find it.** ⭐
+
+</div>
+
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Rust Edition: 2024](https://img.shields.io/badge/Rust-2024-orange.svg)](Cargo.toml)
 [![Release](https://img.shields.io/github/v/release/LilaccFlowerr/tapes-deck?include_prereleases&color=brightgreen)](https://github.com/LilaccFlowerr/tapes-deck/releases)
@@ -135,6 +143,16 @@ is public domain, from Openclipart.
 
 tapes-deck is a separate project from tapes. The author of tapes knows about it and sees it
 as a fitting companion.
+
+## Stonks 📈
+
+<a href="https://star-history.com/#LilaccFlowerr/tapes-deck&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=LilaccFlowerr/tapes-deck&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=LilaccFlowerr/tapes-deck&type=Date" />
+    <img alt="Star history chart" src="https://api.star-history.com/svg?repos=LilaccFlowerr/tapes-deck&type=Date" />
+  </picture>
+</a>
 
 ## License
 
