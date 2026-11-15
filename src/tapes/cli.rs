@@ -9,7 +9,6 @@ use super::types::Output;
 
 const NOT_FOUND: &str = "tapes not installed";
 
-/// The tapes binary built into tapes-deck, see build.rs.
 const BUNDLED: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/tapes"));
 
 fn installed() -> bool {
@@ -39,19 +38,28 @@ where
     run_command(bin(), args, None, |_, _| {})
 }
 
-pub fn run_live<I, S>(args: I, progress: impl FnMut(&str, Option<f32>)) -> Output
-where
-    I: IntoIterator<Item = S>,
-    S: AsRef<std::ffi::OsStr>,
-{
-    let args = args.into_iter().map(|a| a.as_ref().to_owned()).collect();
-    let (program, args) = in_terminal(bin(), args);
-    run_command(program, args, None, progress)
+pub fn run_install(args: Vec<String>, progress: impl FnMut(&str, Option<f32>)) -> Output {
+    let (program, args) = in_terminal(bin(), args.into_iter().map(OsString::from).collect());
+    let shims = match sudo_shim() {
+        Ok(dir) => Some(dir),
+        Err(e) => {
+            eprintln!("couldn't set up the sudo password window: {e}");
+            None
+        }
+    };
+    run_command(program, args, shims.as_deref(), progress)
 }
 
-pub fn run_script(script: &str, cwd: &Path, progress: impl FnMut(&str, Option<f32>)) -> Output {
-    let (program, args) = in_terminal("sh".into(), vec!["-c".into(), script.into()]);
-    run_command(program, args, Some(cwd), progress)
+const SUDO_SHIM: &str = "#!/bin/sh\nexec pkexec env -C \"$PWD\" \"$@\"\n";
+
+fn sudo_shim() -> std::io::Result<PathBuf> {
+    let home = std::env::home_dir().ok_or(std::io::ErrorKind::NotFound)?;
+    let dir = home.join(".cache/tapes-deck/shims");
+    std::fs::create_dir_all(&dir)?;
+    let shim = dir.join("sudo");
+    std::fs::write(&shim, SUDO_SHIM)?;
+    std::fs::set_permissions(&shim, std::fs::Permissions::from_mode(0o755))?;
+    Ok(dir)
 }
 
 fn in_terminal(program: PathBuf, args: Vec<OsString>) -> (PathBuf, Vec<OsString>) {
@@ -64,7 +72,7 @@ fn in_terminal(program: PathBuf, args: Vec<OsString>) -> (PathBuf, Vec<OsString>
 fn run_command(
     program: PathBuf,
     args: Vec<OsString>,
-    cwd: Option<&Path>,
+    path_first: Option<&Path>,
     mut progress: impl FnMut(&str, Option<f32>),
 ) -> Output {
     static COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -75,8 +83,10 @@ fn run_command(
     let result = std::fs::File::create(&path).and_then(|file| {
         let mut command = Command::new(program);
         command.args(args).stdin(Stdio::null()).stdout(file.try_clone()?).stderr(file);
-        if let Some(cwd) = cwd {
-            command.current_dir(cwd);
+        if let Some(dir) = path_first {
+            let path = std::env::var_os("PATH").unwrap_or_default();
+            let paths = std::iter::once(dir.to_path_buf()).chain(std::env::split_paths(&path));
+            command.env("PATH", std::env::join_paths(paths).unwrap_or(path));
         }
         let mut child = command.spawn()?;
         let mut last = String::new();
@@ -113,10 +123,11 @@ fn read_tail(path: &std::path::Path) -> String {
 }
 
 pub fn ensure() -> std::io::Result<()> {
-    if installed() {
+    let target = bin();
+    let ours = std::env::home_dir().map(|home| home.join(".local/bin/tapes"));
+    if installed() && (ours.as_ref() != Some(&target) || std::fs::read(&target)? == BUNDLED) {
         return Ok(());
     }
-    let target = bin();
     let dir = target.parent().ok_or(std::io::ErrorKind::NotFound)?;
     std::fs::create_dir_all(dir)?;
     let partial = dir.join(format!(".tapes.{}", std::process::id()));

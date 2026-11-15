@@ -11,37 +11,26 @@ pub fn setup(ui: &AppWindow) {
     }
     load_tapes(ui);
 
-    let featured: Vec<FeaturedTape> = tapes::FEATURED
-        .iter()
-        .map(|tape| FeaturedTape {
-            name: tape.name.into(),
-            description: tape.description.into(),
-            source: tape.source.into(),
-            branch: "".into(),
-            dir: tape.dir.into(),
-        })
-        .collect();
-    ui.set_featured(ModelRc::from(Rc::new(VecModel::from(featured))));
+    let weak = ui.as_weak();
+    std::thread::spawn(move || {
+        let featured = tapes::featured();
+        let _ = weak.upgrade_in_event_loop(move |ui| {
+            let featured: Vec<FeaturedTape> = featured
+                .into_iter()
+                .map(|(name, description)| FeaturedTape { name: name.into(), description: description.into() })
+                .collect();
+            ui.set_featured(ModelRc::from(Rc::new(VecModel::from(featured))));
+        });
+    });
 
     let weak = ui.as_weak();
     ui.on_install(move |source, name, branch, dir| {
-        let progress = weak.clone();
-        run_in_background(&weak, Duration::ZERO, move || {
-            let output = tapes::install(&source, Some(&name), Some(&branch), Some(&dir), |line, fraction| {
-                let line = SharedString::from(line);
-                let _ = progress.upgrade_in_event_loop(move |ui| {
-                    ui.set_progress(line);
-                    if let Some(fraction) = fraction {
-                        ui.set_progress_value(fraction);
-                    }
-                });
-            });
-            if output.ok {
-                let tape = installed_name(&source, &name);
-                let _ = progress.upgrade_in_event_loop(move |ui| open_editor(&ui, &tape));
-            }
-            output
-        });
+        start_install(&weak, move |progress| tapes::install(&source, Some(&name), Some(&branch), Some(&dir), progress));
+    });
+
+    let weak = ui.as_weak();
+    ui.on_install_featured(move |name| {
+        start_install(&weak, move |progress| tapes::install_featured(&name, progress));
     });
 
     setup_editor(ui);
@@ -62,8 +51,28 @@ pub fn setup(ui: &AppWindow) {
     });
 }
 
-// Running a tape starts hooks that load the CPU (a new shell, for one). Waiting until the matching
-// animation in the UI has played keeps it smooth instead of stuttering halfway through.
+fn start_install(
+    weak: &Weak<AppWindow>,
+    job: impl FnOnce(&mut dyn FnMut(&str, Option<f32>)) -> tapes::Output + Send + 'static,
+) {
+    let progress = weak.clone();
+    run_in_background(weak, Duration::ZERO, move || {
+        let output = job(&mut |line, fraction| {
+            let line = SharedString::from(line);
+            let _ = progress.upgrade_in_event_loop(move |ui| {
+                ui.set_progress(line);
+                if let Some(fraction) = fraction {
+                    ui.set_progress_value(fraction);
+                }
+            });
+        });
+        if let Some(tape) = output.ok.then(|| tapes::installed_tape(&output.text)).flatten() {
+            let _ = progress.upgrade_in_event_loop(move |ui| open_editor(&ui, &tape));
+        }
+        output
+    });
+}
+
 const EJECT_ANIMATION: Duration = Duration::from_millis(650);
 const INSERT_ANIMATION: Duration = Duration::from_millis(380);
 
@@ -82,17 +91,14 @@ fn run_in_background(
     std::thread::spawn(move || {
         std::thread::sleep(animation);
         let output = job();
-        // Reading the library spawns one process per tape. Doing that on the UI thread would
-        // freeze the animations right when the tape lands.
         let loaded = fetch();
         let _ = weak.upgrade_in_event_loop(move |ui| {
             ui.set_busy(false);
             ui.set_output(output.text.trim().into());
             if output.ok {
-                // A finished job closes the install page; for other jobs it is already closed.
                 ui.set_adding(false);
             } else {
-                ui.set_status(last_line(&output.text).into());
+                ui.set_status(tapes::error(&output.text).into());
             }
             apply(&ui, loaded);
         });
@@ -103,7 +109,6 @@ pub fn load_tapes(ui: &AppWindow) {
     apply(ui, fetch());
 }
 
-/// Everything the UI shows, read from tapes without touching the UI so it can run on any thread.
 struct Loaded {
     tapes: Vec<(String, String)>,
     active: i32,
@@ -140,8 +145,6 @@ fn apply(ui: &AppWindow, loaded: Loaded) {
     ui.set_active_targets(strings(loaded.details.targets));
 }
 
-/// Updates the tape list in place. Replacing the whole model rebuilds every cassette in the grid,
-/// which shows up as a hitch right when an insert or eject finishes.
 fn sync_tapes(ui: &AppWindow, infos: Vec<TapeInfo>) {
     let model = ui.get_tapes();
     let Some(rows) = model.as_any().downcast_ref::<VecModel<TapeInfo>>() else {
@@ -166,35 +169,11 @@ fn strings(items: Vec<String>) -> ModelRc<SharedString> {
     ModelRc::from(Rc::new(VecModel::from(items)))
 }
 
-fn last_line(text: &str) -> &str {
-    text.lines()
-        .map(str::trim)
-        .rfind(|line| !line.is_empty())
-        .unwrap_or("something went wrong")
-}
-
 fn source(description: &str) -> &str {
     description
         .strip_prefix("Tape installed from ")
         .unwrap_or(description)
         .trim_start_matches("https://")
-}
-
-fn installed_name(source: &str, name: &str) -> String {
-    let name = name.trim();
-    if !name.is_empty() {
-        return name.to_lowercase();
-    }
-    if let Some(tape) = tapes::FEATURED.iter().find(|tape| tape.source == source) {
-        return tape.name.to_string();
-    }
-    source
-        .trim_end_matches('/')
-        .trim_end_matches(".git")
-        .rsplit('/')
-        .next()
-        .unwrap_or("tape")
-        .to_lowercase()
 }
 
 fn open_editor(ui: &AppWindow, tape: &str) {
@@ -205,16 +184,12 @@ fn open_editor(ui: &AppWindow, tape: &str) {
             return;
         }
     };
-    let guide = tapes::FEATURED.iter().find(|featured| featured.name == tape).map(|featured| &featured.tutorial);
-    let guide = guide.map_or(Vec::new(), |g| [g.about, g.insert, g.eject, g.finish].map(String::from).to_vec());
-
     ui.set_edit_tape(tape.into());
     ui.set_edit_name(config.name.into());
     ui.set_edit_desc(config.desc.into());
     ui.set_edit_insert(strings(config.insert));
     ui.set_edit_eject(strings(config.eject));
     ui.set_edit_install(strings(config.install));
-    ui.set_edit_guide(strings(guide));
     ui.set_edit_error("".into());
     ui.set_editing(true);
 }

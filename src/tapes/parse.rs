@@ -18,7 +18,6 @@ pub fn strip_ansi(text: &str) -> String {
     out
 }
 
-/// What is on screen right now in live output: git rewrites its progress line with `\r`.
 pub fn current_line(text: &str) -> String {
     let text = strip_ansi(text);
     text.split(['\r', '\n'])
@@ -29,7 +28,6 @@ pub fn current_line(text: &str) -> String {
         .to_string()
 }
 
-/// Overall progress (0..=1) of a git clone, read from a line like `Receiving objects:  45% (318/707)`.
 pub fn parse_fraction(line: &str) -> Option<f32> {
     let (start, end) = match line.split(':').next()? {
         "Receiving objects" => (0.0, 0.8),
@@ -43,7 +41,6 @@ pub fn parse_fraction(line: &str) -> Option<f32> {
     Some(start + (end - start) * percent / 100.0)
 }
 
-/// Collapses progress lines that were redrawn in place to the version that ended up on screen.
 pub fn clean_output(text: &str) -> String {
     strip_ansi(text)
         .lines()
@@ -58,6 +55,19 @@ pub fn parse_list(text: &str) -> Vec<Tape> {
         .filter_map(|line| line.split_once(": "))
         .map(|(name, path)| Tape { name: name.trim().into(), path: path.trim().into() })
         .collect()
+}
+
+pub fn installed_tape(text: &str) -> Option<String> {
+    let rest = text.split("Successfully installed tape '").nth(1)?;
+    Some(rest.split('\'').next()?.to_string())
+}
+
+pub fn error(text: &str) -> String {
+    let lines: Vec<&str> = text.lines().map(str::trim).filter(|line| !line.is_empty()).collect();
+    match lines.iter().rposition(|line| line.starts_with("Error:")) {
+        Some(at) => lines[at..].join("\n"),
+        None => lines.last().unwrap_or(&"").to_string(),
+    }
 }
 
 pub fn parse_details(text: &str) -> Details {
@@ -91,7 +101,8 @@ pub fn parse_details(text: &str) -> Details {
 }
 
 pub fn parse_active(text: &str, tapes: &[Tape]) -> Option<usize> {
-    if text.contains("No Tapes is currently inserted") {
+    let lower = text.to_lowercase();
+    if lower.contains("no tapes is currently inserted") || lower.contains("no tape is currently inserted") {
         return None;
     }
     let words: Vec<&str> = text
@@ -133,5 +144,13 @@ mod tests {
     fn cleans_redrawn_output() {
         let raw = "Cloning into 'x'...\r\nReceiving objects:  1% (1/9)\rReceiving objects: 100% (9/9), done.\r\nDone\r\n";
         assert_eq!(clean_output(raw), "Cloning into 'x'...\nReceiving objects: 100% (9/9), done.\nDone");
+    }
+
+    #[test]
+    fn takes_what_tapes_says() {
+        let text = "Copying tape 'end-4'\nError: Tape 'end-4' already exists at /home/me/.tapes/end-4.\nUse --force to overwrite.\n";
+        assert_eq!(error(text), "Error: Tape 'end-4' already exists at /home/me/.tapes/end-4.\nUse --force to overwrite.");
+        assert_eq!(error("cloning\nfatal: repository not found\n"), "fatal: repository not found");
+        assert_eq!(installed_tape("Successfully installed tape 'end-4' to /home/me/.tapes/end-4").as_deref(), Some("end-4"));
     }
 }

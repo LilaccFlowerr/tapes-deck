@@ -14,11 +14,11 @@ export component InstallView inherits View {
 
     callback back();
     callback install(string, string, string, string);
+    callback install-featured(string);
 
     property <bool> tried;
     property <bool> ready: source.text != "" && !root.busy;
 
-    // The page stays alive between visits, so start each visit with a clean form.
     changed shown => {
         if root.shown {
             source.text = "";
@@ -69,18 +69,12 @@ export component InstallView inherits View {
                     spacing: 12px;
 
                     for tape[i] in root.featured: pick := TouchArea {
-                        property <bool> selected: source.text == tape.source && dir.text == tape.dir;
                         property <color> marker: Theme.marker(i);
 
                         height: 124px;
                         enabled: !root.busy;
                         mouse-cursor: root.busy ? MouseCursor.default : MouseCursor.pointer;
-                        clicked => {
-                            source.text = tape.source;
-                            name.text = tape.name;
-                            branch.text = "";
-                            dir.text = tape.dir;
-                        }
+                        clicked => { root.install-featured(tape.name); }
 
                         face := Rectangle {
                             y: pick.has-hover && !root.busy ? -3px : 0;
@@ -89,8 +83,8 @@ export component InstallView inherits View {
                             Rectangle {
                                 border-radius: 10px;
                                 border-width: 1.5px;
-                                border-color: pick.selected ? pick.marker : Theme.text-muted.with-alpha(0.3);
-                                background: pick.selected ? pick.marker.with-alpha(0.12) : pick.has-hover ? Theme.text.with-alpha(0.04) : transparent;
+                                border-color: pick.has-hover ? pick.marker : Theme.text-muted.with-alpha(0.3);
+                                background: pick.has-hover ? pick.marker.with-alpha(0.12) : transparent;
                                 animate border-color, background { duration: 120ms; }
                             }
                             Rectangle {
@@ -98,7 +92,7 @@ export component InstallView inherits View {
                                 y: -6px;
                                 width: 46px;
                                 height: 14px;
-                                background: pick.marker.with-alpha(pick.selected ? 0.9 : 0.6);
+                                background: pick.marker.with-alpha(pick.has-hover ? 0.9 : 0.6);
                                 transform-rotation: i == 1 ? 3deg : -3deg;
                                 animate background { duration: 120ms; }
                             }
@@ -123,7 +117,7 @@ export component InstallView inherits View {
                                     color: Theme.text-muted;
                                     wrap: word-wrap;
                                     overflow: elide;
-                                    max-height: 34px;
+                                    height: 48px;
                                 }
                             }
                         }

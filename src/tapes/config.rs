@@ -27,7 +27,7 @@ pub fn save(tape: &str, config: &Config) -> Result<(), String> {
     std::fs::write(&path, text).map_err(|e| format!("couldn't write {}: {e}", path.display()))
 }
 
-fn parse(text: &str) -> Result<Config, String> {
+pub(super) fn parse(text: &str) -> Result<Config, String> {
     let doc: DocumentMut = text.parse().map_err(|e| format!("tape.toml is not valid: {e}"))?;
     let tape = doc.get("tape").and_then(Item::as_table);
     let text_of = |key: &str| {

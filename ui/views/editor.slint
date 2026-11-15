@@ -290,7 +290,6 @@ export component EditorView inherits View {
     in property <[string]> eject-hooks;
     in property <[string]> install-hooks;
     in property <string> error;
-    in property <[string]> guide;
 
     pure callback describe(string) -> string;
     callback hook-changed(int, int, string);
@@ -302,10 +301,6 @@ export component EditorView inherits View {
 
     property <int> step: 0;
     property <color> marker: Theme.marker(root.step);
-
-    pure function lead(i: int) -> string {
-        return root.guide[i] != "" ? root.guide[i] + " " : "";
-    }
 
     changed shown => {
         if root.shown {
@@ -368,7 +363,7 @@ export component EditorView inherits View {
 
                 Hint {
                     marker: root.marker;
-                    text: root.lead(0) + "A tape.toml is the ID card of a tape: its name, a short description and its hooks. Hooks are small commands that run when something happens to the tape. We'll go through them one by one.";
+                    text: "A tape.toml is the ID card of a tape: its name, a short description and its hooks. Hooks are small commands that run when something happens to the tape. We'll go through them one by one.";
                 }
 
                 Rectangle {
@@ -422,8 +417,8 @@ export component EditorView inherits View {
                     height: 72px;
                     marker: root.marker;
                     text: root.step == 1
-                        ? (root.guide[1] != "" ? root.guide[1] : "These run, in this order, right after you insert the tape.") + " If one fails, the ones after it are skipped."
-                        : (root.guide[2] != "" ? root.guide[2] : "These run right after you eject the tape. Your old config is back by then, but whatever the tape started has been stopped. Type the commands that bring your own setup back, in the order they should run.");
+                        ? "These run, in this order, right after you insert the tape." + " If one fails, the ones after it are skipped."
+                        : "These run right after you eject the tape. Your old config is back by then, but whatever the tape started has been stopped. Type the commands that bring your own setup back, in the order they should run.";
                 }
 
                 if root.step == 2: Text {
@@ -465,7 +460,7 @@ export component EditorView inherits View {
                     width: parent.width;
                     height: 72px;
                     marker: root.marker;
-                    text: root.guide[3] != "" ? root.guide[3] + " Save writes your setup to the tape.toml." : "This is what you set up. Save writes it to the tape.toml of this tape.";
+                    text: "This is what you set up. Save writes it to the tape.toml of this tape.";
                 }
 
                 Text {

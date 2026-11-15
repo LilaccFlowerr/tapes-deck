@@ -28,11 +28,11 @@ export component AppWindow inherits Window {
     in property <[string]> edit-eject;
     in property <[string]> edit-install;
     in property <string> edit-error;
-    in property <[string]> edit-guide;
 
     callback eject();
     callback insert(int);
     callback install(string, string, string, string);
+    callback install-featured(string);
     callback edit-hook-changed(int, int, string);
     callback edit-hook-added(int);
     callback edit-hook-removed(int, int);
@@ -81,6 +81,7 @@ export component AppWindow inherits Window {
         status: root.status;
         back => { root.adding = false; }
         install(source, name, branch, dir) => { root.install(source, name, branch, dir); }
+        install-featured(name) => { root.install-featured(name); }
     }
 
     EditorView {
@@ -92,7 +93,6 @@ export component AppWindow inherits Window {
         eject-hooks: root.edit-eject;
         install-hooks: root.edit-install;
         error: root.edit-error;
-        guide: root.edit-guide;
         hook-changed(kind, i, text) => { root.edit-hook-changed(kind, i, text); }
         hook-added(kind) => { root.edit-hook-added(kind); }
         hook-removed(kind, i) => { root.edit-hook-removed(kind, i); }
