@@ -5,7 +5,7 @@
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "tapes-deck";
-  version = "0.4.4-beta";
+  version = "0.5.0-beta";
 
   src = ../../.;
 
