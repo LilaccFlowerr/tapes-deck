@@ -3,7 +3,7 @@ use std::process::Command;
 use std::{env, fs};
 
 const TAPES_CRATE: &str = "tapes-dotfiles";
-const TAPES_VERSION: &str = "0.1.9-beta";
+const TAPES_VERSION: &str = "0.1.10-beta";
 
 fn main() {
     slint_build::compile("ui/app.slint").unwrap();
