@@ -4,6 +4,7 @@ import { Button } from "../components/button.slint";
 
 export component EmptyView inherits View {
     callback add-tape();
+    callback show-featured();
 
     VerticalLayout {
         alignment: center;
@@ -22,6 +23,13 @@ export component EmptyView inherits View {
         }
         HorizontalLayout {
             alignment: center;
+            spacing: 16px;
+
+            Button {
+                width: 150px;
+                text: "✦ featured";
+                clicked => { root.show-featured(); }
+            }
 
             Button {
                 width: 170px;

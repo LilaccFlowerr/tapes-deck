@@ -19,6 +19,7 @@ export component LibraryView inherits View {
     in property <string> output;
     callback open-tape(int);
     callback add-tape();
+    callback show-featured();
     callback eject();
     callback insert(int);
     callback edit-active();
@@ -268,8 +269,16 @@ export component LibraryView inherits View {
             clicked => { root.add-tape(); }
         }
 
-        if root.output != "": Button {
+        Button {
             x: parent.width - 170px - 32px - self.width - 16px;
+            y: (parent.height - self.height) / 2;
+            width: 150px;
+            text: "✦ featured";
+            clicked => { root.show-featured(); }
+        }
+
+        if root.output != "": Button {
+            x: parent.width - 170px - 32px - 150px - 16px - self.width - 16px;
             y: (parent.height - self.height) / 2;
             width: 120px;
             text: "output";

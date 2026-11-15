@@ -60,7 +60,7 @@ pub fn install(
 
 const FEATURED_REPO: &str = "https://github.com/futurekismo-oss/featured-tapes";
 
-pub fn featured() -> Vec<(String, String)> {
+pub fn featured() -> Vec<(String, Config)> {
     let Some(dir) = std::env::home_dir().map(|home| home.join(".cache/tapes-deck/featured-tapes")) else {
         return Vec::new();
     };
@@ -75,22 +75,21 @@ pub fn featured() -> Vec<(String, String)> {
     if !cloned {
         return Vec::new();
     }
-    let mut tapes: Vec<(String, String)> = std::fs::read_dir(&dir)
+    let mut tapes: Vec<(String, Config)> = std::fs::read_dir(&dir)
         .into_iter()
         .flatten()
         .flatten()
         .filter_map(|entry| {
             let text = std::fs::read_to_string(entry.path().join("tape.toml")).ok()?;
-            let desc = config::parse(&text).map(|config| config.desc).unwrap_or_default();
-            Some((entry.file_name().into_string().ok()?, desc))
+            Some((entry.file_name().into_string().ok()?, config::parse(&text).unwrap_or_default()))
         })
         .collect();
-    tapes.sort();
+    tapes.sort_by(|a, b| a.0.cmp(&b.0));
     tapes
 }
 
 pub fn install_featured(name: &str, progress: impl FnMut(&str, Option<f32>)) -> Output {
-    run_install(vec!["featured".into(), name.into(), "--yes".into()], progress)
+    run_install(vec!["install-featured".into(), name.into(), "--yes".into()], progress)
 }
 
 fn install_args(source: &str, name: &str, branch: &str, dir: &str) -> Vec<String> {

@@ -5,6 +5,7 @@ use toml_edit::{Array, DocumentMut, Item, Table, Value};
 pub struct Config {
     pub name: String,
     pub desc: String,
+    pub dependencies: Vec<String>,
     pub insert: Vec<String>,
     pub eject: Vec<String>,
     pub install: Vec<String>,
@@ -44,6 +45,11 @@ pub(super) fn parse(text: &str) -> Result<Config, String> {
     Ok(Config {
         name: text_of("name"),
         desc: text_of("desc"),
+        dependencies: tape
+            .and_then(|t| t.get("dependencies"))
+            .and_then(Item::as_array)
+            .map(|a| a.iter().filter_map(|v| v.as_str().map(str::to_string)).collect())
+            .unwrap_or_default(),
         insert: list("insert"),
         eject: list("eject"),
         install: list("install"),
@@ -108,6 +114,7 @@ eject = []
         let config = parse(SAMPLE).unwrap();
         assert_eq!(config.name, "x");
         assert_eq!(config.desc, "A tape");
+        assert_eq!(config.dependencies, ["hyprland", "git"]);
         assert_eq!(config.insert, ["hyprctl reload"]);
         assert!(config.eject.is_empty() && config.install.is_empty());
     }

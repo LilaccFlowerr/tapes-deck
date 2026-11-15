@@ -2,6 +2,7 @@ import { Theme } from "theme.slint";
 import { FeaturedTape, TapeInfo } from "types.slint";
 import { EditorView } from "views/editor.slint";
 import { EmptyView } from "views/empty.slint";
+import { FeaturedView } from "views/featured.slint";
 import { InstallView } from "views/install.slint";
 import { LibraryView } from "views/library.slint";
 
@@ -20,6 +21,7 @@ export component AppWindow inherits Window {
     in property <float> progress-value;
     in property <string> output;
     in-out property <bool> adding;
+    in-out property <bool> featuring;
     in-out property <bool> editing;
     in-out property <string> edit-tape;
     in-out property <string> edit-name;
@@ -41,8 +43,9 @@ export component AppWindow inherits Window {
     callback edit-save();
     callback open-editor(int);
 
-    property <bool> show-empty: !root.adding && !root.editing && root.tapes.length == 0;
-    property <bool> show-library: !root.adding && !root.editing && root.tapes.length > 0;
+    property <bool> elsewhere: root.adding || root.featuring || root.editing;
+    property <bool> show-empty: !root.elsewhere && root.tapes.length == 0;
+    property <bool> show-library: !root.elsewhere && root.tapes.length > 0;
 
     title: "tapes-deck";
     icon: @image-url("../assets/icon.svg");
@@ -53,6 +56,7 @@ export component AppWindow inherits Window {
     EmptyView {
         shown: root.show-empty;
         add-tape => { root.adding = true; }
+        show-featured => { root.featuring = true; }
     }
 
     LibraryView {
@@ -67,6 +71,7 @@ export component AppWindow inherits Window {
         output: root.output;
         open-tape(i) => { root.open-editor(i); }
         add-tape => { root.adding = true; }
+        show-featured => { root.featuring = true; }
         eject => { root.eject(); }
         insert(i) => { root.insert(i); }
         edit-active => { root.open-editor(root.active); }
@@ -75,13 +80,22 @@ export component AppWindow inherits Window {
     InstallView {
         shown: root.adding;
         busy: root.busy;
-        featured: root.featured;
         progress: root.progress;
         progress-value: root.progress-value;
         status: root.status;
         back => { root.adding = false; }
         install(source, name, branch, dir) => { root.install(source, name, branch, dir); }
-        install-featured(name) => { root.install-featured(name); }
+    }
+
+    FeaturedView {
+        shown: root.featuring;
+        featured: root.featured;
+        busy: root.busy;
+        status: root.status;
+        progress: root.progress;
+        progress-value: root.progress-value;
+        back => { root.featuring = false; }
+        install(name) => { root.install-featured(name); }
     }
 
     EditorView {

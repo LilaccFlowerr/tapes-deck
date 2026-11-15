@@ -17,9 +17,15 @@ pub fn setup(ui: &AppWindow) {
         let _ = weak.upgrade_in_event_loop(move |ui| {
             let featured: Vec<FeaturedTape> = featured
                 .into_iter()
-                .map(|(name, description)| FeaturedTape { name: name.into(), description: description.into() })
+                .map(|(name, config)| FeaturedTape {
+                    name: name.into(),
+                    description: config.desc.into(),
+                    dependencies: config.dependencies.join(" · ").into(),
+                    installed: false,
+                })
                 .collect();
             ui.set_featured(ModelRc::from(Rc::new(VecModel::from(featured))));
+            mark_installed(&ui);
         });
     });
 
@@ -67,7 +73,11 @@ fn start_install(
             });
         });
         if let Some(tape) = output.ok.then(|| tapes::installed_tape(&output.text)).flatten() {
-            let _ = progress.upgrade_in_event_loop(move |ui| open_editor(&ui, &tape));
+            let _ = progress.upgrade_in_event_loop(move |ui| {
+                ui.set_adding(false);
+                ui.set_featuring(false);
+                open_editor(&ui, &tape);
+            });
         }
         output
     });
@@ -97,6 +107,7 @@ fn run_in_background(
             ui.set_output(output.text.trim().into());
             if output.ok {
                 ui.set_adding(false);
+                ui.set_featuring(false);
             } else {
                 ui.set_status(tapes::error(&output.text).into());
             }
@@ -139,10 +150,24 @@ fn apply(ui: &AppWindow, loaded: Loaded) {
         .collect();
 
     sync_tapes(ui, infos);
+    mark_installed(ui);
     ui.set_active(loaded.active);
     ui.set_active_insert_hooks(strings(loaded.details.insert_hooks));
     ui.set_active_eject_hooks(strings(loaded.details.eject_hooks));
     ui.set_active_targets(strings(loaded.details.targets));
+}
+
+fn mark_installed(ui: &AppWindow) {
+    let tapes = ui.get_tapes();
+    let featured = ui.get_featured();
+    for i in 0..featured.row_count() {
+        let Some(mut tape) = featured.row_data(i) else { continue };
+        let installed = tapes.iter().any(|info| info.name == tape.name);
+        if tape.installed != installed {
+            tape.installed = installed;
+            featured.set_row_data(i, tape);
+        }
+    }
 }
 
 fn sync_tapes(ui: &AppWindow, infos: Vec<TapeInfo>) {
@@ -269,6 +294,7 @@ fn setup_editor(ui: &AppWindow) {
             insert: lines(&ui.get_edit_insert()),
             eject: lines(&ui.get_edit_eject()),
             install: lines(&ui.get_edit_install()),
+            ..Default::default()
         };
         if config.name.trim().is_empty() {
             ui.set_edit_error("a tape needs a name".into());

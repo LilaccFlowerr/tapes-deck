@@ -1,0 +1,279 @@
+import { Theme } from "../theme.slint";
+import { Button } from "../components/button.slint";
+import { Cassette } from "../components/cassette.slint";
+import { FeaturedTape } from "../types.slint";
+import { View } from "../components/view.slint";
+
+component Case inherits TouchArea {
+    in property <string> name;
+    in property <int> number;
+    in property <color> marker;
+    in property <bool> taken;
+
+    width: 48px;
+    height: 160px;
+    mouse-cursor: pointer;
+
+    Rectangle {
+        y: root.taken ? -36px : root.has-hover ? -10px : 0;
+        animate y { duration: 160ms; easing: ease-out; }
+        border-radius: 3px;
+        border-width: 1.6px;
+        border-color: root.taken ? root.marker : Theme.text;
+        background: Theme.sheet;
+        clip: true;
+
+        Rectangle {
+            x: 5px;
+            y: 6px;
+            width: parent.width - 10px;
+            height: parent.height - 12px;
+            border-radius: 2px;
+            border-width: 1px;
+            border-color: Theme.text.with-alpha(0.22);
+        }
+
+        Rectangle {
+            y: 0;
+            height: 16px;
+            background: root.marker.with-alpha(0.78);
+        }
+
+        Text {
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2 + 4px;
+            width: 120px;
+            height: 48px;
+            transform-rotation: -90deg;
+            text: root.name;
+            font-family: Theme.font-hand;
+            font-size: 24px;
+            font-weight: 700;
+            color: Theme.text;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+
+        Text {
+            y: parent.height - self.height - 8px;
+            width: parent.width;
+            text: root.number < 10 ? "0" + root.number : root.number;
+            font-family: Theme.font-hand;
+            font-size: 14px;
+            color: Theme.text-muted;
+            horizontal-alignment: center;
+        }
+    }
+}
+
+export component FeaturedView inherits View {
+    in property <[FeaturedTape]> featured;
+    in property <bool> busy;
+    in property <string> status;
+    in property <string> progress;
+    in property <float> progress-value;
+
+    callback back();
+    callback install(string);
+
+    property <int> selected: 0;
+    property <bool> tried;
+    property <length> shelf-height: 230px;
+    property <length> shelf-y: root.height - root.shelf-height - 28px;
+
+    changed shown => {
+        if root.shown {
+            root.tried = false;
+        }
+    }
+
+    back-button := TouchArea {
+        x: 32px;
+        y: 28px;
+        width: 90px;
+        height: 36px;
+        mouse-cursor: pointer;
+        clicked => { root.back(); }
+
+        Text {
+            text: "← back";
+            font-family: Theme.font-hand;
+            font-size: 22px;
+            color: back-button.has-hover ? Theme.text : Theme.text-muted;
+        }
+    }
+
+    if root.featured.length == 0: Text {
+        text: "featured tapes show up here when you're online";
+        font-size: 14px;
+        color: Theme.text-muted;
+    }
+
+    if root.featured.length > 0: HorizontalLayout {
+        property <FeaturedTape> tape: root.featured[Math.min(root.selected, root.featured.length - 1)];
+
+        x: 32px;
+        y: 64px;
+        width: root.width - 64px;
+        height: root.shelf-y - 64px;
+        alignment: center;
+        spacing: 48px;
+
+        VerticalLayout {
+            alignment: center;
+
+            Rectangle {
+                width: 400px;
+                height: 256px;
+
+                Cassette {
+                    transform-rotation: -2deg;
+                    name: tape.name;
+                    subtitle: tape.description;
+                    marker: Theme.marker(root.selected);
+                    playing: root.busy;
+                }
+            }
+        }
+
+        VerticalLayout {
+            alignment: center;
+            spacing: 6px;
+            width: Math.min(360px, root.width - 64px - 400px - 48px);
+
+            Text {
+                text: tape.name;
+                font-family: Theme.font-hand;
+                font-size: 44px;
+                font-weight: 700;
+                color: Theme.text;
+                overflow: elide;
+            }
+
+            Text {
+                text: tape.description;
+                font-size: 14px;
+                color: Theme.text-muted;
+                wrap: word-wrap;
+            }
+
+            if tape.dependencies != "": VerticalLayout {
+                padding-top: 8px;
+
+                Text {
+                    text: "needs";
+                    font-family: Theme.font-hand;
+                    font-size: 20px;
+                    color: Theme.text-muted;
+                }
+
+                Text {
+                    text: tape.dependencies;
+                    font-size: 14px;
+                    color: Theme.text;
+                    wrap: word-wrap;
+                }
+            }
+
+            HorizontalLayout {
+                alignment: start;
+                padding-top: 12px;
+
+                if !tape.installed: Button {
+                    width: 170px;
+                    text: root.busy ? "installing…" : "install";
+                    enabled: !root.busy;
+                    clicked => {
+                        root.tried = true;
+                        root.install(tape.name);
+                    }
+                }
+
+                if tape.installed: Text {
+                    text: "already in your library";
+                    font-family: Theme.font-hand;
+                    font-size: 22px;
+                    color: Theme.text-muted;
+                }
+            }
+
+            if root.busy: Rectangle {
+                height: 6px;
+                border-radius: 3px;
+                background: Theme.text.with-alpha(0.12);
+                clip: true;
+
+                Rectangle {
+                    x: 0;
+                    width: parent.width * Math.clamp(root.progress-value, 0, 1);
+                    border-radius: 3px;
+                    background: Theme.marker(root.selected);
+                    animate width { duration: 160ms; easing: ease-out; }
+                }
+            }
+
+            if root.busy: Text {
+                text: root.progress != "" ? root.progress : "getting started…";
+                font-size: 13px;
+                color: Theme.text-muted;
+                wrap: word-wrap;
+            }
+
+            if root.tried && !root.busy && root.status != "": Text {
+                text: root.status;
+                font-size: 13px;
+                color: #e86f8a;
+                wrap: word-wrap;
+            }
+        }
+    }
+
+    if root.featured.length > 0: Flickable {
+        x: 56px;
+        y: root.shelf-y;
+        width: root.width - 112px;
+        height: root.shelf-height - 20px;
+        content-width: Math.max(self.width, root.featured.length * 54px + 16px);
+
+        for tape[i] in root.featured: Case {
+            x: 16px + i * 54px;
+            y: parent.height - self.height;
+            name: tape.name;
+            number: i + 1;
+            marker: Theme.marker(i);
+            taken: i == root.selected;
+            clicked => {
+                if i != root.selected && !root.busy {
+                    root.selected = i;
+                    root.tried = false;
+                }
+            }
+        }
+    }
+
+    Rectangle {
+        x: 40px;
+        y: root.shelf-y + root.shelf-height - 20px;
+        width: root.width - 80px;
+        height: 2px;
+        background: Theme.text;
+    }
+
+    Rectangle {
+        x: 44px;
+        y: root.shelf-y + root.shelf-height - 12px;
+        width: root.width - 88px;
+        height: 1.4px;
+        background: Theme.text.with-alpha(0.8);
+    }
+
+    for pos in [100px, root.width - 100px - 30px]: Rectangle {
+        x: pos;
+        y: root.shelf-y + root.shelf-height - 12px;
+        width: 30px;
+        height: 10px;
+        border-width: 1.4px;
+        border-color: Theme.text.with-alpha(0.8);
+    }
+}
