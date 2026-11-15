@@ -7,7 +7,6 @@ export component TapeGrid inherits Rectangle {
     in property <int> active: -1;
     in property <int> lifted: -1;
 
-    // The ejected tape flies from the bay (given in absolute coordinates) to its slot.
     in property <bool> ejecting;
     in property <int> fly-index: -1;
     in property <length> bay-x;
@@ -61,8 +60,6 @@ export component TapeGrid inherits Rectangle {
             height: root.card-height;
             animate y { duration: 150ms; easing: ease-out; }
 
-            // The card is swapped for the flying ghost (and back) instantly, so a tape that lands
-            // doesn't look like it fades in. Only the dimming of the inserted tape is eased.
             Cassette {
                 visible: i != root.lifted;
                 opacity: i == root.active ? 0.35 : 1;
@@ -92,7 +89,6 @@ export component TapeGrid inherits Rectangle {
     }
     }
 
-    // The ejected tape flies from the bay to its slot in an arc, with a little overshoot on landing.
     Rectangle {
         property <float> t: root.ejecting ? 1 : 0;
         property <float> arc: 4 * self.t * (1 - self.t);

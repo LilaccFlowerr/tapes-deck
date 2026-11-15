@@ -10,7 +10,6 @@ export component Player inherits Rectangle {
     in property <bool> playing;
     in property <bool> busy;
     in property <bool> show-eject: true;
-    // An ejecting tape is drawn by the library's flying ghost instead, from exactly this spot.
     in property <bool> handoff;
 
     callback eject();
@@ -18,8 +17,6 @@ export component Player inherits Rectangle {
     width: 520px;
     height: 442px;
 
-    // The cassette is built once and only shown or hidden: inserting is the library's flying
-    // ghost landing in the bay, so there is nothing to animate here.
     changed loaded => {
         if root.loaded {
             cassette.progress = 0.25;

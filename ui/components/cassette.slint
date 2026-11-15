@@ -227,7 +227,6 @@ export component Cassette inherits Rectangle {
 
     property <angle> spin;
     property <float> phase;
-    // Eases the reels up to speed and back down instead of starting and stopping dead.
     property <float> speed: root.playing ? 1 : 0;
 
     width: 400px;

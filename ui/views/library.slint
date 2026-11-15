@@ -28,15 +28,11 @@ export component LibraryView inherits View {
     property <string> confirm-from;
     property <bool> confirm-open;
     property <int> ghost: -1;
-    // A released tape that did not go into the deck flies back to its slot.
     property <bool> flying;
     property <length> home-x;
     property <length> home-y;
-    // A dropped tape stays in the bay while the insert command runs.
     property <bool> holding;
-    // Eject: the tape flies from the bay to its slot until the command, which waits for it to land, is done.
     property <bool> ejecting;
-    // A swap ejects the current tape first, then inserts this one.
     property <int> pending: -1;
     property <bool> show-output;
     property <bool> dragging;
@@ -101,7 +97,6 @@ export component LibraryView inherits View {
                     root.confirm-target = root.pressed;
                     root.confirm-from = root.tapes[root.active].name;
                     root.confirm-open = true;
-                    // The tape flies home and waits there until the swap goes ahead.
                     root.mouse-x = root.home-x;
                     root.mouse-y = root.home-y;
                     root.grab-dx = 0px;
@@ -282,8 +277,6 @@ export component LibraryView inherits View {
         }
     }
 
-    // Follows the cursor while dragging. On release it flies into the bay (and waits there until the
-    // deck takes over) or back to its slot in the grid.
     Rectangle {
         property <float> size: root.dragging ? (root.over-deck ? 0.7 : 0.6) : root.holding ? root.bay-scale : 0.6;
 
