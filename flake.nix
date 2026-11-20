@@ -18,11 +18,13 @@
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = import nixpkgs {inherit system;};
+
       tapes-deck-src = pkgs.callPackage ./packaging/nix/package.nix {
         tapes = tapes.packages.${system}.default;
       };
+      
       tapes-deck-bin = pkgs.callPackage ./packaging/nix/bin.nix {
-        tapes = tapes.packages.${system}.default;
+        tapes = tapes.packages.${system}.tapes-bin or tapes.packages.${system}.default;
       };
       useBin =
         system == "x86_64-linux"
