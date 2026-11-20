@@ -3,7 +3,7 @@ name: Update flake.lock
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * 0' # Weekly on Sunday at 00:00 UTC
+    - cron: '0 0 */2 * *' # Every 2 days at 00:00 UTC
 
 jobs:
   update-flake-lock:
