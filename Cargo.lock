@@ -964,6 +964,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "dither-slint"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "395ba383d2bfc697fd3359e379ab1d98993e3209d1fa1d46d2397877736f8a8c"
+dependencies = [
+ "base64",
+ "png",
+ "slint",
+]
+
+[[package]]
 name = "dlib"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4282,6 +4293,7 @@ dependencies = [
 name = "tapes-deck"
 version = "0.5.0-beta"
 dependencies = [
+ "dither-slint",
  "slint",
  "slint-build",
  "toml_edit",
