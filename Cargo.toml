@@ -5,10 +5,12 @@ edition = "2024"
 license = "GPL-3.0-only"
 
 [dependencies]
+dither-slint = "1"
 slint = "1.18.1"
 toml_edit = "0.25.18"
 
 [build-dependencies]
+dither-slint = "1"
 slint-build = "1.18.1"
 
 # Slint is far too slow to animate smoothly unoptimized, so optimize dependencies even in debug builds.
