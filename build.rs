@@ -6,7 +6,8 @@ const TAPES_CRATE: &str = "tapes-dotfiles";
 const TAPES_VERSION: &str = "0.1.10-beta";
 
 fn main() {
-    slint_build::compile("ui/app.slint").unwrap();
+    let config = slint_build::CompilerConfiguration::new().with_library_paths(dither_slint::library_paths());
+    slint_build::compile_with_config("ui/app.slint", config).unwrap();
     bundle_tapes();
 }
 

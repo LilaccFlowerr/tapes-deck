@@ -1,47 +1,87 @@
 import { Theme } from "../theme.slint";
 import { View } from "../components/view.slint";
-import { Button } from "../components/button.slint";
+import { DitherButton, DitherButtonVariant, DitherFill, DitherIdle, DitherLogo, DitherLogoEffect, DitherMatrix, DitherPress, DitherSilk, DitherText, DitherTextFill } from "@dither/lib.slint";
 
 export component EmptyView inherits View {
     callback add-tape();
     callback show-featured();
 
+    Rectangle {
+        clip: true;
+
+        DitherSilk {
+            matrix: DitherMatrix.bayer8;
+            cell: 4px;
+            animated: root.shown;
+            palette: [Theme.background, Theme.background.darker(0.6), Theme.text-muted.mix(Theme.background, 0.45), Theme.text-muted.mix(Theme.background, 0.3)];
+            folds: 9;
+            angle: 78;
+            sheen: 0.2;
+        }
+
+        Rectangle {
+            background: @radial-gradient(circle, Theme.background 0%, Theme.background 22%, Theme.background.transparentize(1) 62%);
+        }
+    }
+
     VerticalLayout {
         alignment: center;
-        spacing: 12px;
+        spacing: 28px;
 
-        TouchArea {
-            height: 260px;
-            mouse-cursor: MouseCursor.pointer;
-            clicked => { root.add-tape(); }
-
-            Image {
-                width: 320px;
-                height: 243px;
-                source: @image-url("../../assets/add-tape.svg");
-            }
-        }
         HorizontalLayout {
             alignment: center;
-            spacing: 16px;
 
-            Button {
+            cassette := TouchArea {
+                width: 300px;
+                height: 228px;
+                mouse-cursor: MouseCursor.pointer;
+                clicked => { root.add-tape(); }
+
+                DitherLogo {
+                    source: @image-url("../../assets/add-tape.png");
+                    fill: DitherFill.dotted;
+                    cell: 2px;
+                    ink: cassette.has-hover ? Theme.marker(4) : Theme.text;
+                    effect: DitherLogoEffect.shimmer;
+                    animate: root.shown;
+                    transform-scale: cassette.pressed ? 0.97 : cassette.has-hover ? 1.03 : 1;
+                    animate transform-scale { duration: 180ms; easing: ease-out; }
+                }
+            }
+        }
+
+        HorizontalLayout {
+            alignment: center;
+
+            DitherText {
+                fill: DitherTextFill.gradient;
+                text: "no tapes yet";
+                font-size: 50px;
+                ink: Theme.text-muted;
+            }
+        }
+
+        HorizontalLayout {
+            alignment: center;
+            spacing: 14px;
+
+            DitherButton {
                 width: 150px;
                 text: "✦ featured";
+                variant: DitherButtonVariant.outline;
+                color: Theme.text;
+                press-effect: DitherPress.ripple;
                 clicked => { root.show-featured(); }
             }
 
-            Button {
+            DitherButton {
                 width: 170px;
                 text: "+ add tape";
+                color: Theme.marker(4);
+                press-effect: DitherPress.ripple;
+                idle-effect: DitherIdle.shimmer;
                 clicked => { root.add-tape(); }
             }
-        }
-        Text {
-            text: "no tapes yet";
-            horizontal-alignment: center;
-            font-size: 14px;
-            color: Theme.text-muted;
         }
     }
 }

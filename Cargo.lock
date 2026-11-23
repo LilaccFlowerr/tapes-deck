@@ -965,11 +965,12 @@ dependencies = [
 
 [[package]]
 name = "dither-slint"
-version = "0.1.0"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "395ba383d2bfc697fd3359e379ab1d98993e3209d1fa1d46d2397877736f8a8c"
+checksum = "5cf85580f443d39c98a42224ee701e4f4cc4672c8be3e41ed1f0cf1b8a70e6b7"
 dependencies = [
  "base64",
+ "glam",
  "png",
  "slint",
 ]
@@ -1501,6 +1502,12 @@ dependencies = [
  "log",
  "xml-rs",
 ]
+
+[[package]]
+name = "glam"
+version = "0.34.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "627003914c6057c9c8f0832ee4f870b5a4f599d0cfa83f4072675114860cd0ff"
 
 [[package]]
 name = "glob"
