@@ -97,11 +97,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1795201336,
-        "narHash": "sha256-W3tBUAW2526YyvBcfTPz0jcaEoYm2StUMZUJ3COEyDQ=",
+        "lastModified": 1795681674,
+        "narHash": "sha256-kiQwg4xs+K3520fcTg7aSe12sH26qxSVv/d5uDxJVto=",
         "owner": "futurekismo-oss",
         "repo": "tapes",
-        "rev": "50a0a273431483603aa7bfa116f01477c1864941",
+        "rev": "61a00d1a86c681ae34ade2745164d30e4dfe2985",
         "type": "github"
       },
       "original": {
